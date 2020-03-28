@@ -1,20 +1,29 @@
 from Piece import Piece
 class Board(object):
 	"""docstring for Board"""
+	
+
+
 	def __init__(self):
 		super(Board, self).__init__()
+
+		BLANK = 0               # piece names
+		PAWNB = -1
+		PAWNW = 1
+		KINGB = -2
+		KINGW = 2
 		self.white_pieces = []
 		self.black_pieces = []
-		self.board =   [[0,-1,0,-1,0,-1,0,-1,0,-1],
-						[-1,0,-1,0,-1,0,-1,0,-1,0],
-						[0,-1,0,-1,0,-1,0,-1,0,-1],
-						[-1,0,-1,0,-1,0,-1,0,-1,0],
-						[0,0,0,0,0,0,0,0,0,0],
-						[0,0,0,0,0,0,0,0,0,0],
-						[0,1,0,1,0,1,0,1,0,1],
-						[1,0,1,0,1,0,1,0,1,0],
-						[0,1,0,1,0,1,0,1,0,1],
-						[1,0,1,0,1,0,1,0,1,0],]
+		self.board =[[BLANK,PAWNB]*4,
+                	[PAWNB,BLANK]*4,
+                	[BLANK,PAWNB]*4,
+                	[BLANK,]*8,
+                	[BLANK,]*8,
+                	[PAWNW,BLANK]*4,
+                	[BLANK,PAWNW]*4,
+                 	[PAWNW,BLANK]*4]
+
+
 
 	def board_score(self):
 		score = 0
@@ -30,6 +39,7 @@ class Board(object):
 		piece.row = row
 		piece.col = col
 		self.board[piece.row][piece.col] = piece.team
+		Piece.board = self
 
 
 	def print_board(self):
@@ -44,10 +54,15 @@ class Board(object):
 
 			for j in i:
 
-				if j == 1:
-					self.white_pieces.append(Piece(row,col,1,self))
+				if j == +1:
+					piece = Piece(row,col,+1)
+					piece.add_initial_moves()
+					self.white_pieces.append(piece)
+
 				if j == -1:
-					self.black_pieces.append(Piece(row,col,-1,self))
+					piece = Piece(row,col,-1)
+					piece.add_initial_moves()
+					self.black_pieces.append(piece)
 
 				col += 1
 
