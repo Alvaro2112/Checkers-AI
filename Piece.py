@@ -10,7 +10,7 @@ class Piece(object):
 		self.board = board
 		self.is_queen = False
 		self.legal_moves = []
-		add_initial_moves()
+		self.add_initial_moves()
 
 	def getPosition(self):
 		return self.row, self.col
@@ -38,5 +38,9 @@ class Piece(object):
 				self.legal_moves.append((self.row - 1, self.col - 1))
 			if self.check_pos(self.row - 1, self.col + 1):
 				self.legal_moves.append((self.row - 1, self.col - 1))
-		else
+		else:
+			if self.check_pos(self.row - 1, self.col - 1):
+				self.legal_moves.append((self.row - 1, self.col - 1))
+			if self.check_pos(self.row - 1, self.col + 1):
+				self.legal_moves.append((self.row - 1, self.col - 1))
 
