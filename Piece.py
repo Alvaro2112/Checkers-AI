@@ -28,7 +28,9 @@ class Piece(object):
 		pass
 
 	def check_pos(self, row, col):
-		if row > 10 or col > 10:
+		if row >= 10 or col >= 10 or row < 0 or col < 0:
+			return False
+		if self.board.board[row][col] != 0:
 			return False
 		return True
 
@@ -37,10 +39,10 @@ class Piece(object):
 			if self.check_pos(self.row - 1, self.col - 1):
 				self.legal_moves.append((self.row - 1, self.col - 1))
 			if self.check_pos(self.row - 1, self.col + 1):
-				self.legal_moves.append((self.row - 1, self.col - 1))
+				self.legal_moves.append((self.row - 1, self.col + 1))
 		else:
-			if self.check_pos(self.row - 1, self.col - 1):
-				self.legal_moves.append((self.row - 1, self.col - 1))
-			if self.check_pos(self.row - 1, self.col + 1):
-				self.legal_moves.append((self.row - 1, self.col - 1))
+			if self.check_pos(self.row + 1, self.col + 1):
+				self.legal_moves.append((self.row + 1, self.col + 1))
+			if self.check_pos(self.row + 1, self.col - 1):
+				self.legal_moves.append((self.row + 1, self.col - 1))
 
