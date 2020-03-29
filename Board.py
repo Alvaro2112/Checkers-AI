@@ -14,14 +14,14 @@ class Board(object):
 		KINGW = 2
 		self.white_pieces = []
 		self.black_pieces = []
-		self.board =[[BLANK,PAWNB]*4,
-                	[PAWNB,BLANK]*4,
-                	[BLANK,PAWNB]*4,
+		self.board =[[0,-1]*4,
+                	[BLANK,BLANK]*4,
+                	[BLANK,-1]*4,
+                	[0,0,0,0,1,0,0,0],
                 	[BLANK,]*8,
-                	[BLANK,]*8,
-                	[PAWNW,BLANK]*4,
-                	[BLANK,PAWNW]*4,
-                 	[PAWNW,BLANK]*4]
+                	[BLANK,BLANK]*4,
+                	[BLANK,BLANK]*4,
+                 	[BLANK,BLANK]*4]
 
 
 
@@ -40,6 +40,10 @@ class Board(object):
 		piece.col = col
 		self.board[piece.row][piece.col] = piece.team
 		Piece.board = self
+		#for i in self.white_pieces:
+		#	i.update_legal_moves()
+		#for i in self.black_pieces:
+		#	i.update_legal_moves()
 
 
 	def print_board(self):
@@ -68,3 +72,16 @@ class Board(object):
 
 
 			row += 1
+
+
+	def get_piece(self, row, col, team):
+		
+		if team == 1:
+			for i in self.white_pieces:
+				if i.row == row and i.col == col:
+					return i
+
+		else:
+			for i in self.black_pieces:
+				if i.row == row and i.col == col:
+					return i

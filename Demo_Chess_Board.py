@@ -30,11 +30,20 @@ def open_pgn_file(filename):
     moves = [move for move in first_game.main_line()]
     return moves
 
-def render_square(image, key, location, listt):
+def render_square(image, key, location, listt,row,col):
     
-    if listt.count((location[0],location[1])) != 0:
-        color =  '#B58888'
-    elif (location[0] + location[1]) % 2:
+    if location[0] == row and location[1] == col:
+        color =  '#B46888'
+        return sg.RButton('', image_filename=image, size=(1, 1), button_color=('white', color), pad=(0, 0), key=key)
+
+    for i in listt:
+        if i.to == (location[0],location[1]):
+            color =  '#A58888'
+            return sg.RButton('', image_filename=image, size=(1, 1), button_color=('white', color), pad=(0, 0), key=key)
+    
+    
+
+    if (location[0] + location[1]) % 2:
         color =  '#B58863'
     else:
         color = '#F0D9B5'
@@ -50,7 +59,7 @@ def redraw_board(window, board):
                         image_filename=piece_image,)
 
 
-def PlayGame(initial_board, listt):
+def PlayGame(initial_board, listt, rowww, colll):
 
     menu_def = [['&File', ['&Open PGN File', 'E&xit' ]],
                 ['&Help', '&About...'],]
@@ -66,7 +75,7 @@ def PlayGame(initial_board, listt):
         row = [sg.T(str(8-i)+'   ', font='Any 13')]
         for j in range(8):
             piece_image = images[board[i][j]]
-            row.append(render_square(piece_image, key=(i,j), location=(i,j), listt = listt))
+            row.append(render_square(piece_image, key=(i,j), location=(i,j), listt = listt, row=rowww, col=colll))
         row.append(sg.T(str(8-i)+'   ', font='Any 13'))
         board_layout.append(row)
     # add the labels across bottom of board
