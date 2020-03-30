@@ -14,11 +14,11 @@ class Board(object):
 		KINGW = 2
 		self.white_pieces = []
 		self.black_pieces = []
-		self.board =[[0,-1]*4,
+		self.board =[[BLANK,BLANK]*4,
                 	[BLANK,BLANK]*4,
-                	[BLANK,-1]*4,
-                	[0,0,0,0,1,0,0,0],
-                	[BLANK,]*8,
+                	[BLANK,BLANK]*4,
+                	[BLANK,BLANK]*4,
+                	[BLANK,BLANK]*4,
                 	[BLANK,BLANK]*4,
                 	[BLANK,BLANK]*4,
                  	[BLANK,BLANK]*4]

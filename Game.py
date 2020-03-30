@@ -22,7 +22,7 @@ Piece.board = board
 board.add_pieces()
 
 
-'''
+
 for i in range(12):
 	x = gencoordinates(0,7)
 	piece = Piece(x[0],x[1],-1)
@@ -37,7 +37,7 @@ for i in range(12):
 	piece.add_initial_moves()
 	board.white_pieces.append(piece)
 	board.board[x[0]][x[1]] = 1
-'''
+
 
 
 board.white_pieces[0].update_legal_moves()
