@@ -39,23 +39,51 @@ class Piece(object):
 
 		moves = []
 
-		for i in range(3):
-			if i==1: continue
-			for j in range(2):
-				if j==1: continue
-				if self.is_enemmy(row + (i-1) * self.team, col + (j-1) * self.team) and self.check_pos(row + (i-1) * 2 * self.team, col + (j-1) * 2 * self.team) and move.eaten.count(Piece.board.get_piece(row + (i-1) * self.team, col + (j-1) * self.team, -self.team)) == 0 :
-				
-					move_copy = copy.deepcopy(move)
-					move_copy.to = (row - 2 * self.team, col + 2 * self.team)
-					move_copy.eaten.append(Piece.board.get_piece(row + (i-1) * self.team, col + (j-1) * self.team, -self.team))
-					self.can_eat = True
+		if self.is_enemmy(row - self.team, col + self.team) and self.check_pos(row - 2 * self.team, col + 2 * self.team) and move.eaten.count(Piece.board.get_piece(row - self.team, col + self.team, -self.team)) == 0 :
+			
+			move_copy = copy.deepcopy(move)
+			move_copy.to = (row - 2 * self.team, col + 2 * self.team)
+			move_copy.eaten.append(Piece.board.get_piece(row - self.team, col + self.team, -self.team))
+			self.can_eat = True
 
-					result = self.get_move(row + (i-1) * 2 * self.team, col + (j-1) * 2 * self.team, True, move_copy)
-					if result == []:
-						result = [move_copy]
-					moves += result
+			result = self.get_move(row - 2 * self.team, col + 2 * self.team, True, move_copy)
+			if result == []:
+				result = [move_copy]
+			moves += result
+		if self.is_queen and self.is_enemmy(row + self.team, col + self.team) and self.check_pos(row + 2 * self.team, col + 2 * self.team) and move.eaten.count(Piece.board.get_piece(row + self.team, col + self.team, -self.team)) == 0 :
+			
+			move_copy = copy.deepcopy(move)
+			move_copy.to = (row + 2 * self.team, col + 2 * self.team)			
+			move_copy.eaten.append(Piece.board.get_piece(row + self.team, col + self.team, -self.team))
+			self.can_eat = True
 
-		
+			result = self.get_move(row + 2 * self.team, col + 2 * self.team, True, move_copy)
+			if result == []:
+				result = [move_copy]
+			moves += result
+
+		if self.is_enemmy(row - self.team, col - self.team) and self.check_pos(row - 2 * self.team, col - 2 * self.team) and move.eaten.count(Piece.board.get_piece(row - self.team, col - self.team, -self.team)) == 0 :
+			
+			move_copy = copy.deepcopy(move)
+			move_copy.to = (row - 2 * self.team, col - 2 * self.team)
+			move_copy.eaten.append(Piece.board.get_piece(row - self.team, col - self.team, -self.team))
+			self.can_eat = True
+
+			result = self.get_move(row - 2 * self.team, col - 2 * self.team, True, move_copy)
+			if result == []:
+				result = [move_copy]
+			moves += result
+		if self.is_queen and self.is_enemmy(row + self.team, col - self.team) and self.check_pos(row + 2 * self.team, col - 2 * self.team) and move.eaten.count(Piece.board.get_piece(row + self.team, col - self.team, -self.team)) == 0: 
+			
+			move_copy = copy.deepcopy(move)
+			move_copy.to = (row + 2 * self.team, col - 2 * self.team)
+			move_copy.eaten.append(Piece.board.get_piece(row + self.team, col - self.team ,-self.team))
+			self.can_eat = True
+
+			result = self.get_move(row + 2 * self.team, col - 2 * self.team, True, move_copy)
+			if result == []:
+				result = [move_copy]
+			moves += result
 		
 		if self.check_pos(row - self.team, col - self.team) and not has_eaten and not self.can_eat:
 			move_copy = copy.deepcopy(move) 
