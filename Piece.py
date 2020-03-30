@@ -12,7 +12,7 @@ class Piece(object):
 		self.row = row
 		self.col = col
 		self.team = team
-		self.is_queen = True
+		self.is_queen = False
 		self.legal_moves = []
 		self.can_eat = False
 		self.dead = False
@@ -24,9 +24,11 @@ class Piece(object):
 	def move_to(self, row, col):
 		if not self.check_pos(row,col):
 			raise ValueError((row,col),"Wrong new position")
+		
+		self.becomes_king(row, col)
 		Piece.board.move_piece(self, row, col)
-		self.row = row
-		self.col = col
+		
+		
 
 	def update_legal_moves(self):
 		
@@ -39,73 +41,44 @@ class Piece(object):
 
 		moves = []
 
-		if self.is_enemmy(row - self.team, col + self.team) and self.check_pos(row - 2 * self.team, col + 2 * self.team) and move.eaten.count(Piece.board.get_piece(row - self.team, col + self.team, -self.team)) == 0 :
+		for j in range(3):
+				if j==1: continue
+				if self.is_enemmy(row - self.team, col + (j-1) * self.team) and self.check_pos(row - 2 * self.team, col + (j-1) * 2 * self.team) and move.eaten.count(Piece.board.get_piece(row - self.team, col + (j-1) * self.team, -self.team)) == 0 :
+				
+					move_copy = copy.deepcopy(move)
+					move_copy.to = (row - 2 * self.team, col + (j-1) * 2 * self.team)
+					move_copy.eaten.append(Piece.board.get_piece(row - self.team, col + (j-1) * self.team, -self.team))
+					self.can_eat = True
+
+					result = self.get_move(row - 2 * self.team, col + (j-1) * 2 * self.team, True, move_copy)
+					if result == []:
+						result = [move_copy]
+					
+					moves += result
+				if self.is_queen and self.is_enemmy(row + self.team, col + (j-1) *  self.team) and self.check_pos(row + 2 * self.team, col + (j-1) * 2* self.team) and move.eaten.count(Piece.board.get_piece(row + self.team, col + (j-1) *  self.team, -self.team)) == 0: 
 			
-			move_copy = copy.deepcopy(move)
-			move_copy.to = (row - 2 * self.team, col + 2 * self.team)
-			move_copy.eaten.append(Piece.board.get_piece(row - self.team, col + self.team, -self.team))
-			self.can_eat = True
+					move_copy = copy.deepcopy(move)
+					move_copy.to = (row + 2 * self.team, col + (j-1) *2 * self.team)
+					move_copy.eaten.append(Piece.board.get_piece(row + self.team, col - self.team ,-self.team))
+					self.can_eat = True
 
-			result = self.get_move(row - 2 * self.team, col + 2 * self.team, True, move_copy)
-			if result == []:
-				result = [move_copy]
-			moves += result
-		if self.is_queen and self.is_enemmy(row + self.team, col + self.team) and self.check_pos(row + 2 * self.team, col + 2 * self.team) and move.eaten.count(Piece.board.get_piece(row + self.team, col + self.team, -self.team)) == 0 :
-			
-			move_copy = copy.deepcopy(move)
-			move_copy.to = (row + 2 * self.team, col + 2 * self.team)			
-			move_copy.eaten.append(Piece.board.get_piece(row + self.team, col + self.team, -self.team))
-			self.can_eat = True
-
-			result = self.get_move(row + 2 * self.team, col + 2 * self.team, True, move_copy)
-			if result == []:
-				result = [move_copy]
-			moves += result
-
-		if self.is_enemmy(row - self.team, col - self.team) and self.check_pos(row - 2 * self.team, col - 2 * self.team) and move.eaten.count(Piece.board.get_piece(row - self.team, col - self.team, -self.team)) == 0 :
-			
-			move_copy = copy.deepcopy(move)
-			move_copy.to = (row - 2 * self.team, col - 2 * self.team)
-			move_copy.eaten.append(Piece.board.get_piece(row - self.team, col - self.team, -self.team))
-			self.can_eat = True
-
-			result = self.get_move(row - 2 * self.team, col - 2 * self.team, True, move_copy)
-			if result == []:
-				result = [move_copy]
-			moves += result
-		if self.is_queen and self.is_enemmy(row + self.team, col - self.team) and self.check_pos(row + 2 * self.team, col - 2 * self.team) and move.eaten.count(Piece.board.get_piece(row + self.team, col - self.team, -self.team)) == 0: 
-			
-			move_copy = copy.deepcopy(move)
-			move_copy.to = (row + 2 * self.team, col - 2 * self.team)
-			move_copy.eaten.append(Piece.board.get_piece(row + self.team, col - self.team ,-self.team))
-			self.can_eat = True
-
-			result = self.get_move(row + 2 * self.team, col - 2 * self.team, True, move_copy)
-			if result == []:
-				result = [move_copy]
-			moves += result
-		
-		if self.check_pos(row - self.team, col - self.team) and not has_eaten and not self.can_eat:
-			move_copy = copy.deepcopy(move) 
-			move_copy.to = (row - self.team, col - self.team)
-			moves += [move_copy]
-
-		if self.check_pos(row - self.team, col + self.team) and not has_eaten and not self.can_eat:
-			move_copy = copy.deepcopy(move) 
-			move_copy.to = (row - self.team, col + self.team)
-			moves += [move_copy]
-
-		if self.is_queen and self.check_pos(row + self.team, col - self.team) and not has_eaten and not self.can_eat:
-			move_copy = copy.deepcopy(move)
-			move_copy.to = (row + self.team, col - self.team)
-			moves += [move_copy]
-
-		if self.is_queen and self.check_pos(row + self.team, col + self.team) and not has_eaten and not self.can_eat:
-			move_copy = copy.deepcopy(move)
-			move_copy.to = (row + self.team, col + self.team)
-			moves += [move_copy]
+					result = self.get_move(row + 2 * self.team, col + (j-1) * 2 * self.team, True, move_copy)
+					if result == []:
+						result = [move_copy]
+					moves += result
 
 
+		for j in range(3):
+				if j==1: continue
+				if self.check_pos(row - self.team, col + (j-1) * self.team) and not has_eaten and not self.can_eat:
+					move_copy = copy.deepcopy(move) 
+					move_copy.to = (row - self.team, col + (j-1) * self.team)
+					moves += [move_copy]
+				if self.is_queen and self.check_pos(row + self.team, col + (j-1) * self.team) and not has_eaten and not self.can_eat:
+					move_copy = copy.deepcopy(move)
+					move_copy.to = (row + self.team, col + (j-1) * self.team)
+					moves += [move_copy]
+				
 		return moves
 
 
@@ -132,8 +105,14 @@ class Piece(object):
 
 	def add_initial_moves(self):
 		if self.check_pos(self.row - self.team, self.col - self.team):
-			self.legal_moves.append((self.row - self.team, self.col - self.team))
+			self.legal_moves += [Move(self.row - self.team, self.col - self.team)]
 		if self.check_pos(self.row - self.team, self.col + self.team):
-			self.legal_moves.append((self.row - self.team, self.col + self.team))
+			self.legal_moves += [Move(self.row - self.team, self.col + self.team)]
+
+	def becomes_king(self, row, col):
+		if self.team == 1 and row == 0:
+			self.is_queen = True
+		if self.team == -1 and row == 7:
+			self.is_queen == True
 	
 

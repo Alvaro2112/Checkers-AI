@@ -21,7 +21,7 @@ board = Board()
 Piece.board = board
 board.add_pieces()
 
-
+'''
 
 for i in range(12):
 	x = gencoordinates(0,7)
@@ -38,8 +38,9 @@ for i in range(12):
 	board.white_pieces.append(piece)
 	board.board[x[0]][x[1]] = 1
 
+'''
 
-
-board.white_pieces[0].update_legal_moves()
+board.black_pieces[0].move_to(5,5)
+print(board.score)
 
 PlayGame(board.board, board.white_pieces[0].legal_moves, board.white_pieces[0].row, board.white_pieces[0].col)

@@ -12,26 +12,38 @@ class Board(object):
 		PAWNW = 1
 		KINGB = -2
 		KINGW = 2
+		self.score = 0
 		self.white_pieces = []
 		self.black_pieces = []
-		self.board =[[BLANK,BLANK]*4,
-                	[BLANK,BLANK]*4,
-                	[BLANK,BLANK]*4,
-                	[BLANK,BLANK]*4,
-                	[BLANK,BLANK]*4,
-                	[BLANK,BLANK]*4,
-                	[BLANK,BLANK]*4,
-                 	[BLANK,BLANK]*4]
+		self.board =[[BLANK,PAWNB]*4,
+                	[PAWNB,BLANK]*4,
+                	[BLANK,PAWNB]*4,
+                	[BLANK,]*8,
+                	[BLANK,]*8,
+                	[PAWNW,BLANK]*4,
+                	[BLANK,PAWNW]*4,
+                 	[PAWNW,BLANK]*4]
 
 
 
 	def board_score(self):
 		score = 0
-		for i in self.board:
-			for j in i:
-				score += j
+		no = 0
+		for i in range(8):
+			for j in range(8):
+				if self.board[i][j] == 2:
 
-		return score
+					score += 5 + 8 + 2
+				elif self.board[i][j] == -2:
+					score -= 5 + 8 + 2
+				elif self.board[i][j] == 1:
+					score += 5 + (7 - i)
+				elif self.board[i][j] == -1:
+					score -= 5 + i 
+				if self.board[i][j] != 0:
+					no+=1
+
+		self.score = score/no
 
 	def move_piece(self, piece, row, col):
 		
@@ -39,11 +51,14 @@ class Board(object):
 		piece.row = row
 		piece.col = col
 		self.board[piece.row][piece.col] = piece.team
+		if piece.is_queen: self.board[piece.row][piece.col] = piece.team * 2
 		Piece.board = self
-		#for i in self.white_pieces:
-		#	i.update_legal_moves()
-		#for i in self.black_pieces:
-		#	i.update_legal_moves()
+		
+		for i in self.white_pieces:
+			i.update_legal_moves()
+		for i in self.black_pieces:
+			i.update_legal_moves()
+		self.board_score()
 
 
 	def print_board(self):
@@ -85,3 +100,37 @@ class Board(object):
 			for i in self.black_pieces:
 				if i.row == row and i.col == col:
 					return i
+
+	def won(self, team):
+		if team == 1:
+			if len(self.black_pieces) == 0:
+				return True
+			state = True
+			for i in self.black_pieces:
+				if len(i.legal_moves) != 0:
+					state = False
+					break
+			return state
+		else:
+			if len(self.white_pieces) == 0:
+				return True
+			state = True
+			for i in self.white_pieces:
+				if len(i.legal_moves) != 0:
+					state = False
+					break
+			return state
+
+	def draw(self):
+
+		state = True
+		for i in self.white_pieces:
+				if len(i.legal_moves) != 0:
+					state = False
+					break
+		for i in self.black_pieces:
+				if state == False: break
+				if len(i.legal_moves) != 0:
+					state = False
+					break
+		return state
