@@ -53,11 +53,30 @@ class Board(object):
 		self.board[piece.row][piece.col] = piece.team
 		if piece.is_queen: self.board[piece.row][piece.col] = piece.team * 2
 		Piece.board = self
+		self.tot_black_moves = []
+		self.tot_white_moves = []
 		
-		for i in self.white_pieces:
-			i.update_legal_moves()
-		for i in self.black_pieces:
-			i.update_legal_moves()
+		if piece.team == -1:
+			eats = False
+			for i in self.white_pieces:
+				i.update_legal_moves()
+				eats = eats or i.can_eat
+			if eats:
+				for i in self.white_pieces:
+					if not i.can_eat:
+						i.legal_moves = []
+
+
+		else:
+			eats = False
+			for i in self.black_pieces:
+				i.update_legal_moves()
+				eats = eats or i.can_eat
+			if eats:
+				for i in self.black_pieces:
+					if not i.can_eat:
+						i.legal_moves = []
+
 		self.board_score()
 
 
@@ -89,14 +108,12 @@ class Board(object):
 			row += 1
 
 
-	def get_piece(self, row, col, team):
+	def get_piece(self, row, col):
 		
-		if team == 1:
 			for i in self.white_pieces:
 				if i.row == row and i.col == col:
 					return i
 
-		else:
 			for i in self.black_pieces:
 				if i.row == row and i.col == col:
 					return i
@@ -134,3 +151,10 @@ class Board(object):
 					state = False
 					break
 		return state
+
+
+	def get_move(self,moves, row, col):
+		for i in moves:
+			if i.to[0] == row and i.to[1] == col:
+				return i
+		return None

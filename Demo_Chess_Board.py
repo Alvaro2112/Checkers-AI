@@ -5,6 +5,7 @@ import chess.pgn
 import copy
 import time
 
+
 button_names = ('close', 'cookbook', 'cpu', 'github', 'pysimplegui', 'run', 'storage', 'timer')
 
 CHESS_PATH = '.'        # path to the chess pieces
@@ -59,7 +60,8 @@ def redraw_board(window, board):
                         image_filename=piece_image,)
 
 
-def PlayGame(initial_board, listt, rowww, colll):
+def PlayGame(boardx, listt, rowww, colll):
+
 
     menu_def = [['&File', ['&Open PGN File', 'E&xit' ]],
                 ['&Help', '&About...'],]
@@ -67,14 +69,13 @@ def PlayGame(initial_board, listt, rowww, colll):
     # sg.SetOptions(margins=(0,0))
     sg.ChangeLookAndFeel('GreenTan')
     # create initial board setup
-    board = copy.deepcopy(initial_board)
     # the main board display layout
     board_layout = [[sg.T('     ')] + [sg.T('{}'.format(a), pad=((23,27),0), font='Any 13') for a in 'abcdefgh']]
     # loop though board and create buttons with images
     for i in range(8):
         row = [sg.T(str(8-i)+'   ', font='Any 13')]
         for j in range(8):
-            piece_image = images[board[i][j]]
+            piece_image = images[boardx.board[i][j]]
             row.append(render_square(piece_image, key=(i,j), location=(i,j), listt = listt, row=rowww, col=colll))
         row.append(sg.T(str(8-i)+'   ', font='Any 13'))
         board_layout.append(row)
@@ -83,7 +84,7 @@ def PlayGame(initial_board, listt, rowww, colll):
 
     board_controls = [[sg.RButton('New Game', key='Open PGN File'), sg.RButton('Draw')],
                       [sg.RButton('Resign Game')],
-                      [sg.CBox('Play a White', key='_white_')],
+                      [sg.CBox('Play as White', key='_white_')],
                       [sg.Text('Move List')],
                       [sg.Multiline([], do_not_clear=True, autoscroll=True, size=(15,10),key='_movelist_')],]
 
@@ -103,11 +104,50 @@ def PlayGame(initial_board, listt, rowww, colll):
     # ---===--- Loop taking in user input --- #
     i = 0
     moves = None
+    whos_turn = -1
+    fromm = None
+    piece_from = None
+    to = None
     while True:
-        button, value = window.Read()
-        
 
+        button, value = window.Read()
+
+        if button in (None, 'Exit'):
+            break
+
+        if type(button) == type(()):
+
+            if(boardx.board[button[0]][button[1]] == whos_turn):
+                fromm = button
+                piece_from = boardx.get_piece(fromm[0],fromm[1])
+
+            if(boardx.board[button[0]][button[1]] == 0) and fromm != None:
+                
+                move = boardx.get_move(piece_from.legal_moves, button[0], button[1])
+
+                if move != None:
+                    
+                    to = button
+
+                    for j in move.eaten:
+                        boardx.board[j.row][j.col] = 0
+                        if whos_turn == 1:
+                            boardx.black_pieces.remove(j)
+                        else:
+                            boardx.white_pieces.remove(j)
+                    piece_from.move_to(to[0],to[1])
+
+                    redraw_board(window, boardx.board)
+                    fromm = None
+                    move = None
+                    to = None
+                    piece_from = None
+                    whos_turn = - whos_turn
+            
+            
+'''
         if moves is not None and i < len(moves):
+
             move = moves[i]                 # get the current move
             window.FindElement('_movelist_').Update(value='{}   {}\n'.format(i+1, str(move)), append=True)
             move_from = move.from_square    # parse the move-from and move-to squares
@@ -125,3 +165,4 @@ def PlayGame(initial_board, listt, rowww, colll):
             redraw_board(window, board)
             i += 1
 
+'''

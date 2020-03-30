@@ -3,6 +3,7 @@ from Piece import Piece
 from Demo_Chess_Board import PlayGame
 from random import randint
 
+
 seen = set()
 
 
@@ -40,7 +41,5 @@ for i in range(12):
 
 '''
 
-board.black_pieces[0].move_to(5,5)
-print(board.score)
 
-PlayGame(board.board, board.white_pieces[0].legal_moves, board.white_pieces[0].row, board.white_pieces[0].col)
+PlayGame(board, board.white_pieces[0].legal_moves, board.white_pieces[0].row, board.white_pieces[0].col)

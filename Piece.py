@@ -4,6 +4,7 @@ import copy
 class Piece(object):
 	
 	board = None
+	can_eat = False
 
 	"""docstring for Piece"""
 	def __init__(self, row, col, team):
@@ -33,7 +34,8 @@ class Piece(object):
 	def update_legal_moves(self):
 		
 		self.can_eat = False
-		self.legal_moves = self.get_move(self.row, self.col, False, Move(self.row, self.col))
+		self.legal_moves = self.get_move(self.row, self.col, False, Move(self.row, self.col,self))
+
 		
 		
 
@@ -43,11 +45,11 @@ class Piece(object):
 
 		for j in range(3):
 				if j==1: continue
-				if self.is_enemmy(row - self.team, col + (j-1) * self.team) and self.check_pos(row - 2 * self.team, col + (j-1) * 2 * self.team) and move.eaten.count(Piece.board.get_piece(row - self.team, col + (j-1) * self.team, -self.team)) == 0 :
+				if self.is_enemmy(row - self.team, col + (j-1) * self.team) and self.check_pos(row - 2 * self.team, col + (j-1) * 2 * self.team) and move.eaten.count(Piece.board.get_piece(row - self.team, col + (j-1) * self.team)) == 0 :
 				
 					move_copy = copy.deepcopy(move)
 					move_copy.to = (row - 2 * self.team, col + (j-1) * 2 * self.team)
-					move_copy.eaten.append(Piece.board.get_piece(row - self.team, col + (j-1) * self.team, -self.team))
+					move_copy.eaten.append(Piece.board.get_piece(row - self.team, col + (j-1) * self.team))
 					self.can_eat = True
 
 					result = self.get_move(row - 2 * self.team, col + (j-1) * 2 * self.team, True, move_copy)
@@ -55,11 +57,11 @@ class Piece(object):
 						result = [move_copy]
 					
 					moves += result
-				if self.is_queen and self.is_enemmy(row + self.team, col + (j-1) *  self.team) and self.check_pos(row + 2 * self.team, col + (j-1) * 2* self.team) and move.eaten.count(Piece.board.get_piece(row + self.team, col + (j-1) *  self.team, -self.team)) == 0: 
+				if self.is_queen and self.is_enemmy(row + self.team, col + (j-1) *  self.team) and self.check_pos(row + 2 * self.team, col + (j-1) * 2* self.team) and move.eaten.count(Piece.board.get_piece(row + self.team, col + (j-1) *  self.team)) == 0: 
 			
 					move_copy = copy.deepcopy(move)
 					move_copy.to = (row + 2 * self.team, col + (j-1) *2 * self.team)
-					move_copy.eaten.append(Piece.board.get_piece(row + self.team, col - self.team ,-self.team))
+					move_copy.eaten.append(Piece.board.get_piece(row + self.team, col - self.team))
 					self.can_eat = True
 
 					result = self.get_move(row + 2 * self.team, col + (j-1) * 2 * self.team, True, move_copy)
@@ -105,9 +107,9 @@ class Piece(object):
 
 	def add_initial_moves(self):
 		if self.check_pos(self.row - self.team, self.col - self.team):
-			self.legal_moves += [Move(self.row - self.team, self.col - self.team)]
+			self.legal_moves += [Move(self.row,self.col,self,to=(self.row - self.team, self.col - self.team))]
 		if self.check_pos(self.row - self.team, self.col + self.team):
-			self.legal_moves += [Move(self.row - self.team, self.col + self.team)]
+			self.legal_moves += [Move(self.row,self.col,self,to=(self.row - self.team, self.col + self.team))]
 
 	def becomes_king(self, row, col):
 		if self.team == 1 and row == 0:
