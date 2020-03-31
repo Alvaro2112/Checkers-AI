@@ -4,6 +4,7 @@ import chess
 import chess.pgn
 import copy
 import time
+import random
 
 
 button_names = ('close', 'cookbook', 'cpu', 'github', 'pysimplegui', 'run', 'storage', 'timer')
@@ -23,7 +24,7 @@ pawnW = os.path.join(CHESS_PATH, 'npawnw.png')
 kingB = os.path.join(CHESS_PATH, 'nkingb.png')
 kingW = os.path.join(CHESS_PATH, 'nkingw.png')
 
-images = {PAWNB: pawnB, PAWNW: pawnW,KINGB: kingB, KINGW: kingW, BLANK: blank}
+images = {PAWNB: pawnB, PAWNW: pawnW, KINGB: kingB, KINGW: kingW, BLANK: blank}
 
 def open_pgn_file(filename):
     pgn = open(filename)
@@ -31,36 +32,30 @@ def open_pgn_file(filename):
     moves = [move for move in first_game.main_line()]
     return moves
 
-def render_square(image, key, location, listt,row,col):
+def render_square(image, key, location):
     
-    if location[0] == row and location[1] == col:
-        color =  '#B46888'
-        return sg.RButton('', image_filename=image, size=(1, 1), button_color=('white', color), pad=(0, 0), key=key)
-
-    for i in listt:
-        if i.to == (location[0],location[1]):
-            color =  '#A58888'
-            return sg.RButton('', image_filename=image, size=(1, 1), button_color=('white', color), pad=(0, 0), key=key)
-    
-    
-
     if (location[0] + location[1]) % 2:
         color =  '#B58863'
     else:
         color = '#F0D9B5'
     return sg.RButton('', image_filename=image, size=(1, 1), button_color=('white', color), pad=(0, 0), key=key)
 
-def redraw_board(window, board):
+def redraw_board(window, board, row = 10 ,col = 10, moves = (10,10)):
     for i in range(8):
         for j in range(8):
             color = '#B58863' if (i+j) % 2 else '#F0D9B5'
+            if moves.count((i,j)) != 0:
+                print("ok")
+                color = '#A58888'
+            if i == row and col == j:
+                color = '#B46888'
             piece_image = images[board[i][j]]
             elem = window.FindElement(key=(i,j))
             elem.Update(button_color = ('white', color),
                         image_filename=piece_image,)
 
 
-def PlayGame(boardx, listt, rowww, colll):
+def PlayGame(boardx):
 
 
     menu_def = [['&File', ['&Open PGN File', 'E&xit' ]],
@@ -76,7 +71,7 @@ def PlayGame(boardx, listt, rowww, colll):
         row = [sg.T(str(8-i)+'   ', font='Any 13')]
         for j in range(8):
             piece_image = images[boardx.board[i][j]]
-            row.append(render_square(piece_image, key=(i,j), location=(i,j), listt = listt, row=rowww, col=colll))
+            row.append(render_square(piece_image, key=(i,j), location=(i,j)))
         row.append(sg.T(str(8-i)+'   ', font='Any 13'))
         board_layout.append(row)
     # add the labels across bottom of board
@@ -108,6 +103,7 @@ def PlayGame(boardx, listt, rowww, colll):
     fromm = None
     piece_from = None
     to = None
+    can_play = True
     while True:
 
         button, value = window.Read()
@@ -115,27 +111,69 @@ def PlayGame(boardx, listt, rowww, colll):
         if button in (None, 'Exit'):
             break
 
-        if type(button) == type(()):
+        #can_play = boardx
 
-            if(boardx.board[button[0]][button[1]] == whos_turn):
-                fromm = button
-                piece_from = boardx.get_piece(fromm[0],fromm[1])
 
-            if(boardx.board[button[0]][button[1]] == 0) and fromm != None:
-                
-                move = boardx.get_move(piece_from.legal_moves, button[0], button[1])
+        if type(button) == type(()) and can_play:
 
-                if move != None:
+
+            if whos_turn == 1:
+                if(boardx.board[button[0]][button[1]] == whos_turn or boardx.board[button[0]][button[1]] == 2 * whos_turn):
                     
-                    to = button
+                    fromm = button
+                    piece_from = boardx.get_piece(fromm[0],fromm[1])
+                    redraw_board(window, boardx.board , piece_from.row, piece_from.col,list(o.to for o in piece_from.legal_moves))
+
+                if(boardx.board[button[0]][button[1]] == 0) and fromm != None:
+                    
+                    move = boardx.get_move(piece_from.legal_moves, button[0], button[1])
+
+                    if move != None:
+                        
+                        to = button
+
+
+
+                        for j in move.eaten:
+                            boardx.board[j.row][j.col] = 0
+                            if whos_turn == 1:
+                                boardx.black_pieces.remove(boardx.get_piece(j.row,j.col))
+                            else:
+                                boardx.white_pieces.remove(boardx.get_piece(j.row,j.col))
+                        piece_from.move_to(to[0],to[1])
+
+                        can_play = not boardx.draw() and not boardx.won(whos_turn)
+
+                        redraw_board(window, boardx.board)
+                        fromm = None
+                        move = None
+                        to = None
+                        piece_from = None
+                        whos_turn = - whos_turn
+            else: 
+
+                    available_pieces = [] 
+
+                    for o in boardx.black_pieces:
+                        if len(o.legal_moves) != 0 : available_pieces += [o]
+
+                    piece_from = random.choice(available_pieces)
+                    fromm = (piece_from.row,piece_from.col)
+
+                    #redraw_board(window, boardx.board , piece_from.row, piece_from.col,list(o.to for o in piece_from.legal_moves))
+
+                    move = random.choice(piece_from.legal_moves)
+
+                    to = (move.to)
 
                     for j in move.eaten:
-                        boardx.board[j.row][j.col] = 0
-                        if whos_turn == 1:
-                            boardx.black_pieces.remove(j)
-                        else:
-                            boardx.white_pieces.remove(j)
+                            boardx.board[j.row][j.col] = 0
+                            if whos_turn == 1:
+                                boardx.black_pieces.remove(boardx.get_piece(j.row,j.col))
+                            else:
+                                boardx.white_pieces.remove(boardx.get_piece(j.row,j.col))
                     piece_from.move_to(to[0],to[1])
+                    can_play = not boardx.draw() and not boardx.won(whos_turn)
 
                     redraw_board(window, boardx.board)
                     fromm = None
@@ -143,8 +181,13 @@ def PlayGame(boardx, listt, rowww, colll):
                     to = None
                     piece_from = None
                     whos_turn = - whos_turn
-            
-            
+                
+        else:
+
+            if boardx.draw():
+                print("DRAW!!")
+            if boardx.won(-whos_turn):
+                print(-whos_turn, "WON!!")
 '''
         if moves is not None and i < len(moves):
 

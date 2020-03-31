@@ -51,8 +51,13 @@ class Board(object):
 		piece.row = row
 		piece.col = col
 		self.board[piece.row][piece.col] = piece.team
-		if piece.is_queen: self.board[piece.row][piece.col] = piece.team * 2
+		if piece.is_queen: 
+			print("Changed king value")
+			self.board[piece.row][piece.col] = piece.team * 2
+			print(self.board[piece.row][piece.col])
+
 		Piece.board = self
+
 		self.tot_black_moves = []
 		self.tot_white_moves = []
 		
@@ -95,6 +100,7 @@ class Board(object):
 				if j == +1:
 					piece = Piece(row,col,+1)
 					piece.add_initial_moves()
+
 					self.white_pieces.append(piece)
 
 				if j == -1:
@@ -110,13 +116,16 @@ class Board(object):
 
 	def get_piece(self, row, col):
 		
+		
 			for i in self.white_pieces:
+
 				if i.row == row and i.col == col:
 					return i
 
 			for i in self.black_pieces:
 				if i.row == row and i.col == col:
 					return i
+
 
 	def won(self, team):
 		if team == 1:
@@ -153,7 +162,7 @@ class Board(object):
 		return state
 
 
-	def get_move(self,moves, row, col):
+	def get_move(self, moves, row, col):
 		for i in moves:
 			if i.to[0] == row and i.to[1] == col:
 				return i

@@ -34,6 +34,7 @@ class Piece(object):
 	def update_legal_moves(self):
 		
 		self.can_eat = False
+		self.legal_moves = []
 		self.legal_moves = self.get_move(self.row, self.col, False, Move(self.row, self.col,self))
 
 		
@@ -48,20 +49,22 @@ class Piece(object):
 				if self.is_enemmy(row - self.team, col + (j-1) * self.team) and self.check_pos(row - 2 * self.team, col + (j-1) * 2 * self.team) and move.eaten.count(Piece.board.get_piece(row - self.team, col + (j-1) * self.team)) == 0 :
 				
 					move_copy = copy.deepcopy(move)
+					#move_copy.eaten = move.eaten
 					move_copy.to = (row - 2 * self.team, col + (j-1) * 2 * self.team)
-					move_copy.eaten.append(Piece.board.get_piece(row - self.team, col + (j-1) * self.team))
+					move_copy.eaten += [Piece.board.get_piece(row - self.team, col + (j-1) * self.team)]
 					self.can_eat = True
 
 					result = self.get_move(row - 2 * self.team, col + (j-1) * 2 * self.team, True, move_copy)
 					if result == []:
 						result = [move_copy]
-					
 					moves += result
+
 				if self.is_queen and self.is_enemmy(row + self.team, col + (j-1) *  self.team) and self.check_pos(row + 2 * self.team, col + (j-1) * 2* self.team) and move.eaten.count(Piece.board.get_piece(row + self.team, col + (j-1) *  self.team)) == 0: 
 			
 					move_copy = copy.deepcopy(move)
+					#move_copy.eaten = move.eaten
 					move_copy.to = (row + 2 * self.team, col + (j-1) *2 * self.team)
-					move_copy.eaten.append(Piece.board.get_piece(row + self.team, col - self.team))
+					move_copy.eaten += [Piece.board.get_piece(row + self.team, col  + (j-1) *self.team)]
 					self.can_eat = True
 
 					result = self.get_move(row + 2 * self.team, col + (j-1) * 2 * self.team, True, move_copy)
@@ -101,7 +104,7 @@ class Piece(object):
 	def is_enemmy(self, row, col):
 		if self.out_of_board(row, col):
 			return False
-		if Piece.board.board[row][col] != -self.team:
+		if Piece.board.board[row][col] != -self.team and Piece.board.board[row][col] != - 2 * self.team:
 			return False
 		return True
 
@@ -112,9 +115,11 @@ class Piece(object):
 			self.legal_moves += [Move(self.row,self.col,self,to=(self.row - self.team, self.col + self.team))]
 
 	def becomes_king(self, row, col):
+		
 		if self.team == 1 and row == 0:
 			self.is_queen = True
+		
 		if self.team == -1 and row == 7:
-			self.is_queen == True
+			self.is_queen = True
 	
 
