@@ -49,7 +49,6 @@ class Piece(object):
 				if self.is_enemmy(row - self.team, col + (j-1) * self.team) and self.check_pos(row - 2 * self.team, col + (j-1) * 2 * self.team) and move.eaten.count(Piece.board.get_piece(row - self.team, col + (j-1) * self.team)) == 0 :
 				
 					move_copy = copy.deepcopy(move)
-					#move_copy.eaten = move.eaten
 					move_copy.to = (row - 2 * self.team, col + (j-1) * 2 * self.team)
 					move_copy.eaten += [Piece.board.get_piece(row - self.team, col + (j-1) * self.team)]
 					self.can_eat = True
@@ -62,7 +61,6 @@ class Piece(object):
 				if self.is_queen and self.is_enemmy(row + self.team, col + (j-1) *  self.team) and self.check_pos(row + 2 * self.team, col + (j-1) * 2* self.team) and move.eaten.count(Piece.board.get_piece(row + self.team, col + (j-1) *  self.team)) == 0: 
 			
 					move_copy = copy.deepcopy(move)
-					#move_copy.eaten = move.eaten
 					move_copy.to = (row + 2 * self.team, col + (j-1) *2 * self.team)
 					move_copy.eaten += [Piece.board.get_piece(row + self.team, col  + (j-1) *self.team)]
 					self.can_eat = True

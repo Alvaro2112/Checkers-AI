@@ -5,6 +5,7 @@ import chess.pgn
 import copy
 import time
 import random
+from Piece import Piece
 
 
 button_names = ('close', 'cookbook', 'cpu', 'github', 'pysimplegui', 'run', 'storage', 'timer')
@@ -25,6 +26,66 @@ kingB = os.path.join(CHESS_PATH, 'nkingb.png')
 kingW = os.path.join(CHESS_PATH, 'nkingw.png')
 
 images = {PAWNB: pawnB, PAWNW: pawnW, KINGB: kingB, KINGW: kingW, BLANK: blank}
+
+
+
+def Minimax(board, depth, team):
+    
+    move = None
+    best_move = None
+    best_move_piece = None
+
+
+    if team == 1:
+        best_score = -1111
+        pieces = board.white_pieces
+    else:
+        best_score = 1111
+        pieces = board.black_pieces
+
+
+    if depth == 0 or board.gameover:
+        score = board.score
+        return (1, move , score)
+
+
+    a, b = 0, 0
+    for i in pieces:
+        b = 0
+        for j in i.legal_moves:
+
+            i_save = copy.deepcopy(i)
+            j_save = copy.deepcopy(j)
+            print(a,b)
+            board_save = copy.deepcopy(board)
+
+            if team == 1:
+                next_pos = board.white_pieces[a].legal_moves[b].to
+                board.white_pieces[a].move_to(next_pos[0],next_pos[1])
+            else:
+                next_pos = board.black_pieces[a].legal_moves[b].to
+                board.black_pieces[a].move_to(next_pos[0],next_pos[1])
+
+            _, _, score = Minimax(board, depth-1, -team)
+
+            i = i_save
+            j = j_save
+            print(a,b)
+
+            Piece.board = board_save
+            board = board_save
+
+            if score < best_score:
+                best_score = score
+                best_move = j
+                best_move_piece = i
+
+            b += 1
+       
+        a += 1
+
+    return (best_move_piece, best_move, best_score)
+
 
 def open_pgn_file(filename):
     pgn = open(filename)
@@ -103,7 +164,7 @@ def PlayGame(boardx):
     fromm = None
     piece_from = None
     to = None
-    can_play = True
+
     while True:
 
         button, value = window.Read()
@@ -114,10 +175,10 @@ def PlayGame(boardx):
         #can_play = boardx
 
 
-        if type(button) == type(()) and can_play:
-
+        if type(button) == type(()) and not boardx.gameover:
 
             if whos_turn == 1:
+                
                 if(boardx.board[button[0]][button[1]] == whos_turn or boardx.board[button[0]][button[1]] == 2 * whos_turn):
                     
                     fromm = button
@@ -129,51 +190,50 @@ def PlayGame(boardx):
                     move = boardx.get_move(piece_from.legal_moves, button[0], button[1])
 
                     if move != None:
-                        
+
                         to = button
-
-
 
                         for j in move.eaten:
                             boardx.board[j.row][j.col] = 0
+
                             if whos_turn == 1:
                                 boardx.black_pieces.remove(boardx.get_piece(j.row,j.col))
                             else:
                                 boardx.white_pieces.remove(boardx.get_piece(j.row,j.col))
+
                         piece_from.move_to(to[0],to[1])
 
-                        can_play = not boardx.draw() and not boardx.won(whos_turn)
 
                         redraw_board(window, boardx.board)
+
                         fromm = None
                         move = None
                         to = None
                         piece_from = None
                         whos_turn = - whos_turn
             else: 
+                    
+                    
+ 
 
-                    available_pieces = [] 
 
-                    for o in boardx.black_pieces:
-                        if len(o.legal_moves) != 0 : available_pieces += [o]
+                    save_ = copy.deepcopy(boardx)
+                    piece_from, move , _ = Minimax(boardx , 2 ,-1)
+                    Piece.board = save_
+                    boardx = save_
 
-                    piece_from = random.choice(available_pieces)
-                    fromm = (piece_from.row,piece_from.col)
-
-                    #redraw_board(window, boardx.board , piece_from.row, piece_from.col,list(o.to for o in piece_from.legal_moves))
-
-                    move = random.choice(piece_from.legal_moves)
-
-                    to = (move.to)
-
+                    piece_from = boardx.get_piece(piece_from.row,piece_from.col)
+                    
+                    to = move.to
                     for j in move.eaten:
+                            j = boardx.get_piece(j.row,j.col)
                             boardx.board[j.row][j.col] = 0
                             if whos_turn == 1:
                                 boardx.black_pieces.remove(boardx.get_piece(j.row,j.col))
                             else:
                                 boardx.white_pieces.remove(boardx.get_piece(j.row,j.col))
+
                     piece_from.move_to(to[0],to[1])
-                    can_play = not boardx.draw() and not boardx.won(whos_turn)
 
                     redraw_board(window, boardx.board)
                     fromm = None
@@ -181,13 +241,16 @@ def PlayGame(boardx):
                     to = None
                     piece_from = None
                     whos_turn = - whos_turn
-                
+                    
+
         else:
 
-            if boardx.draw():
+            if boardx.winner == 0:
                 print("DRAW!!")
-            if boardx.won(-whos_turn):
-                print(-whos_turn, "WON!!")
+            if boardx.winner == 1:
+                print("White Wins!!")
+            if boardx.winner == -1:
+                print("Black Wins!!")
 '''
         if moves is not None and i < len(moves):
 

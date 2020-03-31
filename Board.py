@@ -15,6 +15,9 @@ class Board(object):
 		self.score = 0
 		self.white_pieces = []
 		self.black_pieces = []
+		self.gameover = False
+		self.draw = False
+		self.winner = 0
 		self.board =[[BLANK,PAWNB]*4,
                 	[PAWNB,BLANK]*4,
                 	[BLANK,PAWNB]*4,
@@ -44,6 +47,14 @@ class Board(object):
 					no+=1
 
 		self.score = score/no
+
+		if self.draw:
+			self.score = 0.0000000001
+		if self.gameover and self.winner == 1:
+			self.score = 999999
+		if self.gameover and self.winner == -1:
+			self.score = -999999
+
 
 	def move_piece(self, piece, row, col):
 		
@@ -81,6 +92,20 @@ class Board(object):
 				for i in self.black_pieces:
 					if not i.can_eat:
 						i.legal_moves = []
+
+		if self.won(1):
+			self.gameover = True
+			self.winner = 1
+
+		if self.won(-1):
+			self.gameover = True
+			self.winner = -1
+
+		if False:
+			self.gameover = True
+			
+
+
 
 		self.board_score()
 
