@@ -30,32 +30,32 @@ class Board(object):
                  	[PAWNW,BLANK]*4]
 
 
-
 	def board_score(self):
 		score = 0
 		no = 0
 		for i in range(8):
 			for j in range(8):
 				if self.board[i][j] == 2:
-
-					score += 5 + 8 + 2
-				elif self.board[i][j] == -2:
 					score -= 5 + 8 + 2
+				elif self.board[i][j] == -2:
+					score += 5 + 8 + 2
 				elif self.board[i][j] == 1:
-					score += 5 + (7 - i)
+					score -= 5 + (7 - i)
 				elif self.board[i][j] == -1:
-					score -= 5 + i 
+					score += 5 + i 
 				if self.board[i][j] != 0:
-					no+=1
+					no += 1
 
-		self.score = score/no
+		self.score = score / no
 
-		if self.draw:
+		if self.draw and self.winner == -1:
+			self.score = -0.0000000001
+		if self.draw and self.winner == 1:
 			self.score = 0.0000000001
 		if self.gameover and self.winner == 1:
-			self.score = 999999
+			self.score = -1000
 		if self.gameover and self.winner == -1:
-			self.score = -999999
+			self.score = 1000
 
 
 	def move_piece(self, piece, row, col):
@@ -64,6 +64,7 @@ class Board(object):
 		piece.row = row
 		piece.col = col
 		self.board[piece.row][piece.col] = piece.team
+
 		if piece.is_queen: 
 			self.board[piece.row][piece.col] = piece.team * 2
 
@@ -95,7 +96,7 @@ class Board(object):
 			self.gameover = True
 			self.winner = -1
 
-		if False:
+		if self.draww():
 			self.gameover = True
 			
 
@@ -165,9 +166,10 @@ class Board(object):
 					break
 			return state
 
-	def draw(self):
+	def draww(self):
 
 		state = True
+
 		for i in self.white_pieces:
 				if len(i.legal_moves) != 0:
 					state = False
@@ -278,7 +280,9 @@ class Board(object):
 			piece.legal_moves += [Move(piece.row,piece.col,to=(piece.row - piece.team, piece.col - piece.team))]
 		if self.check_pos(piece.row - piece.team, piece.col + piece.team):
 			piece.legal_moves += [Move(piece.row,piece.col,to=(piece.row - piece.team, piece.col + piece.team))]
-
+		'''
+		self.update_legal_moves(piece)
+		'''
 	def becomes_king(self, piece, row, col):
 		
 		if piece.team == 1 and row == 0:
