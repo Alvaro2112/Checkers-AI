@@ -6,6 +6,8 @@ import copy
 import time
 import random
 from Piece import Piece
+from Board import Board
+from Move import Move
 
 
 button_names = ('close', 'cookbook', 'cpu', 'github', 'pysimplegui', 'run', 'storage', 'timer')
@@ -54,28 +56,24 @@ def Minimax(board, depth, team):
         b = 0
         for j in i.legal_moves:
 
-            i_save = copy.deepcopy(i)
-            j_save = copy.deepcopy(j)
-            print(a,b)
-            board_save = copy.deepcopy(board)
+            board_save = copy_board(board)
 
             if team == 1:
-                next_pos = board.white_pieces[a].legal_moves[b].to
-                board.white_pieces[a].move_to(next_pos[0],next_pos[1])
+                next_pos = board_save.white_pieces[a].legal_moves[b].to
+                board_save.move_to(board_save.white_pieces[a], next_pos[0], next_pos[1])
             else:
-                next_pos = board.black_pieces[a].legal_moves[b].to
-                board.black_pieces[a].move_to(next_pos[0],next_pos[1])
+                next_pos = board_save.black_pieces[a].legal_moves[b].to
+                board_save.move_to(board_save.black_pieces[a], next_pos[0], next_pos[1])
 
-            _, _, score = Minimax(board, depth-1, -team)
+            _, _, score = Minimax(board_save, depth-1, -team)
 
-            i = i_save
-            j = j_save
-            print(a,b)
 
-            Piece.board = board_save
-            board = board_save
+            if score < best_score and team == -1:
+                best_score = score
+                best_move = j
+                best_move_piece = i
 
-            if score < best_score:
+            if score > best_score and team == 1:
                 best_score = score
                 best_move = j
                 best_move_piece = i
@@ -114,6 +112,52 @@ def redraw_board(window, board, row = 10 ,col = 10, moves = (10,10)):
             elem = window.FindElement(key=(i,j))
             elem.Update(button_color = ('white', color),
                         image_filename=piece_image,)
+
+
+def copy_board(board):
+    new_board = Board()
+    new_board.gameover = copy.deepcopy(board.gameover)
+    new_board.score = copy.deepcopy(board.score)
+    new_board.draw = copy.deepcopy(board.draw)
+    new_board.winner = copy.deepcopy(board.winner)
+    new_board.board = copy.deepcopy(board.board)
+
+    for i in board.white_pieces:
+        piece = Piece(copy.deepcopy(i.row), copy.deepcopy(i.col), copy.deepcopy(i.team))
+        piece.is_queen = copy.deepcopy(i.is_queen)
+        piece.can_eat= copy.deepcopy(i.can_eat)
+        piece.dead = copy.deepcopy(i.dead)
+        for j in i.legal_moves:
+            move = Move(copy.deepcopy(j.fromm[0]), copy.deepcopy(j.fromm[1]))
+            move.to = copy.deepcopy(j.to)
+            move.eats = copy.deepcopy(j.eats)
+            for k in j.eaten:
+                move.eaten += [copy.deepcopy(k)]
+            piece.legal_moves += [move]
+        new_board.white_pieces += [piece]
+
+    for i in board.black_pieces:
+        piece = Piece(copy.deepcopy(i.row), copy.deepcopy(i.col), copy.deepcopy(i.team))
+        piece.is_queen = copy.deepcopy(i.is_queen)
+        piece.can_eat= copy.deepcopy(i.can_eat)
+        piece.dead = copy.deepcopy(i.dead)
+        for j in i.legal_moves:
+            
+            move = Move(copy.deepcopy(j.fromm[0]), copy.deepcopy(j.fromm[1]))
+            move.to = copy.deepcopy(j.to)
+            move.eats = copy.deepcopy(j.eats)
+            for k in j.eaten:
+                move.eaten += [copy.deepcopy(k)]
+            piece.legal_moves += [move]
+        new_board.black_pieces += [piece]
+
+    return new_board
+
+
+
+
+
+
 
 
 def PlayGame(boardx):
@@ -187,21 +231,21 @@ def PlayGame(boardx):
 
                 if(boardx.board[button[0]][button[1]] == 0) and fromm != None:
                     
-                    move = boardx.get_move(piece_from.legal_moves, button[0], button[1])
+                    move = boardx.find_move(piece_from.legal_moves, button[0], button[1])
 
                     if move != None:
 
                         to = button
 
-                        for j in move.eaten:
-                            boardx.board[j.row][j.col] = 0
+                        for x,y in move.eaten:
+                            boardx.board[x][y] = 0
 
                             if whos_turn == 1:
-                                boardx.black_pieces.remove(boardx.get_piece(j.row,j.col))
+                                boardx.black_pieces.remove(boardx.get_piece(x,y))
                             else:
-                                boardx.white_pieces.remove(boardx.get_piece(j.row,j.col))
+                                boardx.white_pieces.remove(boardx.get_piece(x,y))
 
-                        piece_from.move_to(to[0],to[1])
+                        boardx.move_to(piece_from,to[0],to[1])
 
 
                         redraw_board(window, boardx.board)
@@ -215,25 +259,20 @@ def PlayGame(boardx):
                     
                     
  
-
-
-                    save_ = copy.deepcopy(boardx)
-                    piece_from, move , _ = Minimax(boardx , 2 ,-1)
-                    Piece.board = save_
-                    boardx = save_
+                    piece_from, move , _ = Minimax(boardx , 4 ,-1)
 
                     piece_from = boardx.get_piece(piece_from.row,piece_from.col)
                     
                     to = move.to
-                    for j in move.eaten:
-                            j = boardx.get_piece(j.row,j.col)
+                    for x,y in move.eaten:
+                            j = boardx.get_piece(x,y)
                             boardx.board[j.row][j.col] = 0
                             if whos_turn == 1:
                                 boardx.black_pieces.remove(boardx.get_piece(j.row,j.col))
                             else:
                                 boardx.white_pieces.remove(boardx.get_piece(j.row,j.col))
 
-                    piece_from.move_to(to[0],to[1])
+                    boardx.move_to(piece_from,to[0],to[1])
 
                     redraw_board(window, boardx.board)
                     fromm = None
@@ -241,6 +280,9 @@ def PlayGame(boardx):
                     to = None
                     piece_from = None
                     whos_turn = - whos_turn
+
+
+                 
                     
 
         else:

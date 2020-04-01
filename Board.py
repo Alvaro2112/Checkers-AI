@@ -1,4 +1,6 @@
 from Piece import Piece
+from Move import Move
+import copy
 class Board(object):
 	"""docstring for Board"""
 	
@@ -63,30 +65,22 @@ class Board(object):
 		piece.col = col
 		self.board[piece.row][piece.col] = piece.team
 		if piece.is_queen: 
-			print("Changed king value")
 			self.board[piece.row][piece.col] = piece.team * 2
-			print(self.board[piece.row][piece.col])
 
-		Piece.board = self
-
-		self.tot_black_moves = []
-		self.tot_white_moves = []
-		
 		if piece.team == -1:
 			eats = False
 			for i in self.white_pieces:
-				i.update_legal_moves()
+				self.update_legal_moves(i)
 				eats = eats or i.can_eat
 			if eats:
 				for i in self.white_pieces:
 					if not i.can_eat:
 						i.legal_moves = []
 
-
 		else:
 			eats = False
 			for i in self.black_pieces:
-				i.update_legal_moves()
+				self.update_legal_moves(i)
 				eats = eats or i.can_eat
 			if eats:
 				for i in self.black_pieces:
@@ -124,13 +118,13 @@ class Board(object):
 
 				if j == +1:
 					piece = Piece(row,col,+1)
-					piece.add_initial_moves()
+					self.add_initial_moves(piece)
 
 					self.white_pieces.append(piece)
 
 				if j == -1:
 					piece = Piece(row,col,-1)
-					piece.add_initial_moves()
+					self.add_initial_moves(piece)
 					self.black_pieces.append(piece)
 
 				col += 1
@@ -140,7 +134,6 @@ class Board(object):
 
 
 	def get_piece(self, row, col):
-		
 		
 			for i in self.white_pieces:
 
@@ -187,8 +180,111 @@ class Board(object):
 		return state
 
 
-	def get_move(self, moves, row, col):
+	def find_move(self, moves, row, col):
 		for i in moves:
 			if i.to[0] == row and i.to[1] == col:
 				return i
 		return None
+
+
+	
+	
+	def move_to(self, piece, row, col):
+		if not self.check_pos(row,col):
+			raise ValueError((row,col),"Wrong new position")
+		
+		self.becomes_king(piece,row, col)
+		self.move_piece(piece, row, col)
+		
+		
+
+	def update_legal_moves(self, piece):
+		
+		piece.can_eat = False
+		piece.legal_moves = []
+		piece.legal_moves = self.get_move(piece,piece.row, piece.col, False, Move(piece.row, piece.col))
+
+		
+		
+
+	def get_move(self, piece, row, col, has_eaten ,move):
+
+		moves = []
+
+		for j in range(3):
+				if j==1: continue
+				if self.is_enemmy(piece, row - piece.team, col + (j-1) * piece.team) and self.check_pos(row - 2 * piece.team, col + (j-1) * 2 * piece.team) and move.eaten.count((row - piece.team, col + (j-1) * piece.team)) == 0 :
+				
+					move_copy = copy.deepcopy(move)
+					move_copy.to = (row - 2 * piece.team, col + (j-1) * 2 * piece.team)
+					move_copy.eaten += [(row - piece.team, col + (j-1) * piece.team)]
+					piece.can_eat = True
+
+					result = self.get_move(piece,row - 2 * piece.team, col + (j-1) * 2 * piece.team, True, move_copy)
+					if result == []:
+						result = [move_copy]
+					moves += result
+
+				if piece.is_queen and self.is_enemmy(piece,row + piece.team, col + (j-1) *  piece.team) and self.check_pos(row + 2 * piece.team, col + (j-1) * 2* piece.team) and move.eaten.count((row + piece.team, col + (j-1) *  piece.team)) == 0: 
+			
+					move_copy = copy.deepcopy(move)
+					move_copy.to = (row + 2 * piece.team, col + (j-1) *2 * piece.team)
+					move_copy.eaten += [(row + piece.team, col  + (j-1) *piece.team)]
+					piece.can_eat = True
+
+					result = self.get_move(piece,row + 2 * piece.team, col + (j-1) * 2 * piece.team, True, move_copy)
+					if result == []:
+						result = [move_copy]
+					moves += result
+
+
+		for j in range(3):
+				if j==1: continue
+				if self.check_pos(row - piece.team, col + (j-1) * piece.team) and not has_eaten and not piece.can_eat:
+					move_copy = copy.deepcopy(move) 
+					move_copy.to = (row - piece.team, col + (j-1) * piece.team)
+					moves += [move_copy]
+				if piece.is_queen and self.check_pos(row + piece.team, col + (j-1) * piece.team) and not has_eaten and not piece.can_eat:
+					move_copy = copy.deepcopy(move)
+					move_copy.to = (row + piece.team, col + (j-1) * piece.team)
+					moves += [move_copy]
+				
+		return moves
+
+
+	def out_of_board(self, row, col):
+		if row >= 8 or col >= 8 or row < 0 or col < 0:
+			return True
+		return False
+
+	def check_pos(self, row, col):
+		if self.out_of_board(row, col):
+			return False
+
+		if self.board[row][col] != 0:
+			return False
+		
+		return True
+
+	def is_enemmy(self,piece, row, col):
+		if self.out_of_board(row, col):
+			return False
+		if self.board[row][col] != -piece.team and self.board[row][col] != - 2 * piece.team:
+			return False
+		return True
+
+	def add_initial_moves(self, piece):
+		if self.check_pos(piece.row - piece.team, piece.col - piece.team):
+			piece.legal_moves += [Move(piece.row,piece.col,to=(piece.row - piece.team, piece.col - piece.team))]
+		if self.check_pos(piece.row - piece.team, piece.col + piece.team):
+			piece.legal_moves += [Move(piece.row,piece.col,to=(piece.row - piece.team, piece.col + piece.team))]
+
+	def becomes_king(self, piece, row, col):
+		
+		if piece.team == 1 and row == 0:
+			piece.is_queen = True
+		
+		if piece.team == -1 and row == 7:
+			piece.is_queen = True
+	
+

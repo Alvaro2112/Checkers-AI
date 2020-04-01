@@ -8,6 +8,7 @@ board = Board()
 Piece.board = board
 board.add_pieces()
 
+
 '''
 copyr = copy.deepcopy(board)
 Piece.board = copyr
