@@ -31,22 +31,29 @@ class Board(object):
 
 
 	def board_score(self):
+		
+		self.score = 0
 		score = 0
 		no = 0
 		for i in range(8):
 			for j in range(8):
+				'''
+				score -= self.board[i][j]
+				'''
 				if self.board[i][j] == 2:
 					score -= 5 + 8 + 2
+					no += 1
 				elif self.board[i][j] == -2:
+					no += 1
 					score += 5 + 8 + 2
 				elif self.board[i][j] == 1:
+					no += 1
 					score -= 5 + (7 - i)
 				elif self.board[i][j] == -1:
 					score += 5 + i 
-				if self.board[i][j] != 0:
 					no += 1
 
-		self.score = score / no
+		self.score = copy.deepcopy(score/no)
 
 		if self.draw and self.winner == -1:
 			self.score = -0.0000000001
@@ -98,6 +105,7 @@ class Board(object):
 
 		if self.draww():
 			self.gameover = True
+			self.winner = 0
 			
 
 
@@ -276,6 +284,7 @@ class Board(object):
 		return True
 
 	def add_initial_moves(self, piece):
+		
 		if self.check_pos(piece.row - piece.team, piece.col - piece.team):
 			piece.legal_moves += [Move(piece.row,piece.col,to=(piece.row - piece.team, piece.col - piece.team))]
 		if self.check_pos(piece.row - piece.team, piece.col + piece.team):
