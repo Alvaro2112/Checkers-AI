@@ -95,11 +95,13 @@ class Board(object):
 					if not i.can_eat:
 						i.legal_moves = []
 
+
 		if self.won(1):
 			self.gameover = True
 			self.winner = 1
 
 		if self.won(-1):
+
 			self.gameover = True
 			self.winner = -1
 

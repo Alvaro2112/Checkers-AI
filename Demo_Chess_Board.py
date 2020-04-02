@@ -36,6 +36,10 @@ def Minimax(board, depth, team, alpha, beta):
     best_move_piece = None
     done = False
 
+
+    if depth == 0 or board.gameover:
+        return (None, None , copy.deepcopy(board.score))
+
     if team == 1:
         best_score = 1000000
         pieces = board.white_pieces
@@ -44,9 +48,6 @@ def Minimax(board, depth, team, alpha, beta):
         pieces = board.black_pieces
 
 
-    if depth < 1 or board.gameover:
-        score = copy.deepcopy(board.score)
-        return (None, None , score)
 
     for a,i in enumerate(pieces):
         if done:
@@ -56,17 +57,21 @@ def Minimax(board, depth, team, alpha, beta):
             board_save = copy.deepcopy(board)
             if team == 1:
                 next_pos = board_save.white_pieces[a].legal_moves[b].to
+
                 for x,y in j.eaten:
                     board_save.board[x][y] = 0
                     board_save.black_pieces.remove(board_save.get_piece(x,y))
+
                 board_save.move_to(board_save.white_pieces[a], next_pos[0], next_pos[1])
 
             else:
                 next_pos = board_save.black_pieces[a].legal_moves[b].to
-                board_save.move_to(board_save.black_pieces[a], next_pos[0], next_pos[1])
                 for x,y in j.eaten:
                     board_save.board[x][y] = 0
                     board_save.white_pieces.remove(board_save.get_piece(x,y))
+
+                board_save.move_to(board_save.black_pieces[a], next_pos[0], next_pos[1])
+
 
             _, _, score = Minimax(board_save, depth - 1 , -team, alpha, beta)
 
@@ -91,10 +96,6 @@ def Minimax(board, depth, team, alpha, beta):
             if beta <= alpha:
                 return (best_move_piece, best_move, best_score)
                 break
-
-
-           
-
 
 
     return (best_move_piece, best_move, best_score)
