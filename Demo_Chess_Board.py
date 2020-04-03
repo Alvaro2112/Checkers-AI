@@ -3,11 +3,6 @@ import os
 import chess
 import chess.pgn
 import copy
-import time
-import random
-from Piece import Piece
-from Board import Board
-from Move import Move
 
 
 button_names = ('close', 'cookbook', 'cpu', 'github', 'pysimplegui', 'run', 'storage', 'timer')
@@ -102,9 +97,11 @@ def Minimax(board, depth, team, alpha, beta):
 
 
 def open_pgn_file(filename):
+
     pgn = open(filename)
     first_game = chess.pgn.read_game(pgn)
     moves = [move for move in first_game.main_line()]
+
     return moves
 
 def render_square(image, key, location):
@@ -118,34 +115,40 @@ def render_square(image, key, location):
 def redraw_board(window, board, row = 10 ,col = 10, moves = (10,10)):
     for i in range(8):
         for j in range(8):
+
             color = '#B58863' if (i+j) % 2 else '#F0D9B5'
+
             if moves.count((i,j)) != 0:
-                print("ok")
                 color = '#A58888'
+
             if i == row and col == j:
                 color = '#B46888'
+
             piece_image = images[board[i][j]]
             elem = window.FindElement(key=(i,j))
             elem.Update(button_color = ('white', color),
                         image_filename=piece_image,)
 
-
-
-
-
+def check_game_state(board):
+    if board.winner == 0 and board.gameover == True:
+                print("DRAW!!")
+    if board.winner == 1:
+                print("White Wins!!")
+    if board.winner == -1:
+                print("Black Wins!!")
 
 
 def PlayGame(boardx):
 
 
-    menu_def = [['&File', ['&Open PGN File', 'E&xit' ]],
-                ['&Help', '&About...'],]
 
-    # sg.SetOptions(margins=(0,0))
+
     sg.ChangeLookAndFeel('GreenTan')
+
     # create initial board setup
     # the main board display layout
     board_layout = [[sg.T('     ')] + [sg.T('{}'.format(a), pad=((23,27),0), font='Any 13') for a in 'abcdefgh']]
+   
     # loop though board and create buttons with images
     for i in range(8):
         row = [sg.T(str(8-i)+'   ', font='Any 13')]
@@ -154,6 +157,7 @@ def PlayGame(boardx):
             row.append(render_square(piece_image, key=(i,j), location=(i,j)))
         row.append(sg.T(str(8-i)+'   ', font='Any 13'))
         board_layout.append(row)
+
     # add the labels across bottom of board
     board_layout.append([sg.T('     ')] + [sg.T('{}'.format(a), pad=((23,27),0), font='Any 13') for a in 'abcdefgh'])
 
@@ -167,57 +171,59 @@ def PlayGame(boardx):
     board_tab = [[sg.Column(board_layout)]]
 
     # the main window layout
-    layout = [[sg.Menu(menu_def, tearoff=False)],
-              [sg.TabGroup([[sg.Tab('Board',board_tab),
-                             
-                             ]], title_color='red'),
-               sg.Column(board_controls)],
+    layout = [[sg.TabGroup([[sg.Tab('Board',board_tab)]], title_color='red'),sg.Column(board_controls)],
               [sg.Text('Click anywhere on board for next move', font='_ 14')]]
 
     window = sg.Window('Chess', default_button_element_size=(12,1), auto_size_buttons=False, icon='kingb.ico').Layout(layout)
 
     # ---===--- Loop taking in user input --- #
-    i = 0
-    moves = None
     whos_turn = -1
     fromm = None
     piece_from = None
     to = None
-
+    Depth = 8
     while True:
 
-        button, value = window.Read()
+
+        button, value = window.Read() if whos_turn == 1 else window.Read(timeout = 0)
 
 
-        #can_play = boardx
-        if not boardx.gameover and whos_turn == -1: 
+        if button in (None,'Exit'):
+            break
 
-            piece_from, move , score = Minimax(boardx , 8 ,-1,-1000000,1000000)
-            print("FINAL:",score)
+        elif not boardx.gameover and whos_turn == -1: 
+
+            moves = 0
+            for i in boardx.black_pieces:
+                    for j in i.legal_moves:
+                        piece_from = i
+                        move = j
+                        moves += 1
+
+            if moves > 1:
+                print("Thinking...")
+                piece_from, move , score = Minimax(boardx ,Depth , -1, -1000000, 1000000)
+                print("FINAL:",score)
+            
 
             piece_from = boardx.get_piece(piece_from.row,piece_from.col)
-                            
             to = move.to
-            for x,y in move.eaten:
-                j = boardx.get_piece(x,y)
-                boardx.board[j.row][j.col] = 0
-                if whos_turn == 1:
-                    boardx.black_pieces.remove(boardx.get_piece(j.row,j.col))
-                else:
-                    boardx.white_pieces.remove(boardx.get_piece(j.row,j.col))
+
+            for x, y in move.eaten:
+
+                boardx.board[x][y] = 0
+                boardx.white_pieces.remove(boardx.get_piece(x,y))
 
             boardx.move_to(piece_from,to[0],to[1])
             redraw_board(window, boardx.board)
+            check_game_state(boardx)
+            print("Human's turn")
+
             fromm = None
             move = None
             to = None
             piece_from = None
             whos_turn = - whos_turn
-
-
-        elif button in (None, 'Exit'):
-            break
-
 
         elif type(button) == type(()) and not boardx.gameover and whos_turn == 1:
 
@@ -236,17 +242,14 @@ def PlayGame(boardx):
                         to = button
 
                         for x,y in move.eaten:
-                            boardx.board[x][y] = 0
 
-                            if whos_turn == 1:
-                                boardx.black_pieces.remove(boardx.get_piece(x,y))
-                            else:
-                                boardx.white_pieces.remove(boardx.get_piece(x,y))
+                            boardx.board[x][y] = 0
+                            boardx.black_pieces.remove(boardx.get_piece(x,y))
 
                         boardx.move_to(piece_from,to[0],to[1])
-
-
                         redraw_board(window, boardx.board)
+                        check_game_state(boardx)
+                        print("Compu's turn")
 
                         fromm = None
                         move = None
@@ -255,38 +258,3 @@ def PlayGame(boardx):
                         whos_turn = - whos_turn
 
                     
-                    
- 
-
-                 
-                    
-
-        elif boardx.gameover:
-
-            if boardx.winner == 0:
-                print("DRAW!!")
-            if boardx.winner == 1:
-                print("White Wins!!")
-            if boardx.winner == -1:
-                print("Black Wins!!")
-'''
-        if moves is not None and i < len(moves):
-
-            move = moves[i]                 # get the current move
-            window.FindElement('_movelist_').Update(value='{}   {}\n'.format(i+1, str(move)), append=True)
-            move_from = move.from_square    # parse the move-from and move-to squares
-            move_to = move.to_square
-            row, col = move_from // 8, move_from % 8
-            piece = board[row][col]         # get the move-from piece
-            button = window.FindElement(key=(row,col))
-            for x in range(3):
-                button.Update(button_color = ('white' , 'red' if x % 2 else 'white'))
-                window.Refresh()
-                time.sleep(.05)
-            board[row][col] = BLANK         # place blank where piece was
-            row, col = move_to // 8, move_to % 8  # compute move-to square
-            board[row][col] = piece         # place piece in the move-to square
-            redraw_board(window, board)
-            i += 1
-
-'''

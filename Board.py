@@ -3,18 +3,23 @@ from Move import Move
 import copy
 class Board(object):
 	"""docstring for Board"""
-	
-
 
 	def __init__(self):
 		super(Board, self).__init__()
 
-		BLANK = 0               # piece names
+		# piece names
+		BLANK = 0               
 		PAWNB = -1
 		PAWNW = 1
 		KINGB = -2
 		KINGW = 2
-		self.score = 0
+		score = 0
+		self.BLANK = BLANK               
+		self.PAWNB = PAWNB
+		self.PAWNW = PAWNW
+		self.KINGB = KINGB
+		self.KINGW = KINGW
+		self.score = score
 		self.white_pieces = []
 		self.black_pieces = []
 		self.gameover = False
@@ -29,45 +34,46 @@ class Board(object):
                 	[BLANK,PAWNW]*4,
                  	[PAWNW,BLANK]*4]
 
-
 	def board_score(self):
 		
 		self.score = 0
 		score = 0
 		no = 0
+
 		for i in range(8):
 			for j in range(8):
-				'''
-				score -= self.board[i][j]
-				'''
-				if self.board[i][j] == 2:
+
+				if self.board[i][j] == self.KINGW:
 					score -= 5 + 8 + 2
 					no += 1
-				elif self.board[i][j] == -2:
+				elif self.board[i][j] == self.KINGB:
 					no += 1
 					score += 5 + 8 + 2
-				elif self.board[i][j] == 1:
+				elif self.board[i][j] == self.PAWNW:
 					no += 1
 					score -= 5 + (7 - i)
-				elif self.board[i][j] == -1:
+				elif self.board[i][j] == self.PAWNB:
 					score += 5 + i 
 					no += 1
 
-		self.score = copy.deepcopy(score/no)
+		self.score = copy.deepcopy(score / no)
 
-		if self.draw and self.winner == -1:
+		if self.draw and self.winner == self.PAWNB:
 			self.score = -0.0000000001
-		if self.draw and self.winner == 1:
+
+		if self.draw and self.winner ==self.PAWNW:
 			self.score = 0.0000000001
-		if self.gameover and self.winner == 1:
+
+		if self.gameover and self.winner == self.PAWNW:
 			self.score = -1000
-		if self.gameover and self.winner == -1:
+
+		if self.gameover and self.winner == self.PAWNB:
 			self.score = 1000
 
 
 	def move_piece(self, piece, row, col):
 		
-		self.board[piece.row][piece.col] = 0
+		self.board[piece.row][piece.col] = self.BLANK
 		piece.row = row
 		piece.col = col
 		self.board[piece.row][piece.col] = piece.team
@@ -75,79 +81,52 @@ class Board(object):
 		if piece.is_queen: 
 			self.board[piece.row][piece.col] = piece.team * 2
 
-		if piece.team == -1:
-			eats = False
-			for i in self.white_pieces:
-				self.update_legal_moves(i)
-				eats = eats or i.can_eat
-			if eats:
-				for i in self.white_pieces:
-					if not i.can_eat:
-						i.legal_moves = []
+		pieces =  self.white_pieces if piece.team == self.PAWNB else self.black_pieces
 
-		else:
-			eats = False
-			for i in self.black_pieces:
-				self.update_legal_moves(i)
-				eats = eats or i.can_eat
-			if eats:
-				for i in self.black_pieces:
-					if not i.can_eat:
-						i.legal_moves = []
+		eats = False
+		for i in pieces:
+			self.update_legal_moves(i)
+			eats = eats or i.can_eat
+		if eats:
+			for i in pieces:
+				if not i.can_eat:
+					i.legal_moves = []
 
-
-		if self.won(1):
+		if self.won(self.PAWNW):
 			self.gameover = True
-			self.winner = 1
+			self.winner = self.PAWNW
 
-		if self.won(-1):
+		if self.won(self.PAWNB):
 
 			self.gameover = True
-			self.winner = -1
+			self.winner = self.PAWNB
 
 		if self.draww():
 			self.gameover = True
 			self.winner = 0
-			
-
-
 
 		self.board_score()
 
 
-	def print_board(self):
-		for i in self.board:
-			print(i)
-
 	def add_pieces(self):
-		row = 0
 
-		for i in self.board:
-			col = 0
+		for row,i in enumerate(self.board):
+			for col,j in enumerate(i):
 
-			for j in i:
-
-				if j == +1:
+				if j == self.PAWNW:
 					piece = Piece(row,col,+1)
 					self.add_initial_moves(piece)
 
 					self.white_pieces.append(piece)
 
-				if j == -1:
+				if j == self.PAWNB:
 					piece = Piece(row,col,-1)
 					self.add_initial_moves(piece)
 					self.black_pieces.append(piece)
 
-				col += 1
-
-
-			row += 1
-
-
 	def get_piece(self, row, col):
 		
 			for i in self.white_pieces:
-
 				if i.row == row and i.col == col:
 					return i
 
@@ -157,67 +136,53 @@ class Board(object):
 
 
 	def won(self, team):
-		if team == 1:
-			if len(self.black_pieces) == 0:
-				return True
-			state = True
-			for i in self.black_pieces:
-				if len(i.legal_moves) != 0:
-					state = False
-					break
-			return state
-		else:
-			if len(self.white_pieces) == 0:
-				return True
-			state = True
-			for i in self.white_pieces:
-				if len(i.legal_moves) != 0:
-					state = False
-					break
-			return state
+
+		pieces =  self.white_pieces if team == self.PAWNB else self.black_pieces
+
+		if len(pieces) == 0:
+			return True
+
+		for i in pieces:
+			if len(i.legal_moves) != 0:
+				return False
+
+		return True
 
 	def draww(self):
 
-		state = True
 
 		for i in self.white_pieces:
 				if len(i.legal_moves) != 0:
-					state = False
-					break
+					return  False
+
 		for i in self.black_pieces:
-				if state == False: break
 				if len(i.legal_moves) != 0:
-					state = False
-					break
-		return state
+					return  False
+
+		return True
 
 
 	def find_move(self, moves, row, col):
+
 		for i in moves:
 			if i.to[0] == row and i.to[1] == col:
 				return i
+
 		return None
 
-
-	
-	
 	def move_to(self, piece, row, col):
+
 		if not self.check_pos(row,col):
 			raise ValueError((row,col),"Wrong new position")
 		
 		self.becomes_king(piece,row, col)
 		self.move_piece(piece, row, col)
-		
-		
 
 	def update_legal_moves(self, piece):
 		
 		piece.can_eat = False
 		piece.legal_moves = []
 		piece.legal_moves = self.get_move(piece,piece.row, piece.col, False, Move(piece.row, piece.col))
-
-		
-		
 
 	def get_move(self, piece, row, col, has_eaten ,move):
 
@@ -263,13 +228,14 @@ class Board(object):
 				
 		return moves
 
-
 	def out_of_board(self, row, col):
+
 		if row >= 8 or col >= 8 or row < 0 or col < 0:
 			return True
 		return False
 
 	def check_pos(self, row, col):
+
 		if self.out_of_board(row, col):
 			return False
 
@@ -279,8 +245,10 @@ class Board(object):
 		return True
 
 	def is_enemmy(self,piece, row, col):
+
 		if self.out_of_board(row, col):
 			return False
+
 		if self.board[row][col] != -piece.team and self.board[row][col] != - 2 * piece.team:
 			return False
 		return True
@@ -291,15 +259,17 @@ class Board(object):
 			piece.legal_moves += [Move(piece.row,piece.col,to=(piece.row - piece.team, piece.col - piece.team))]
 		if self.check_pos(piece.row - piece.team, piece.col + piece.team):
 			piece.legal_moves += [Move(piece.row,piece.col,to=(piece.row - piece.team, piece.col + piece.team))]
+		
 		'''
 		self.update_legal_moves(piece)
 		'''
+
 	def becomes_king(self, piece, row, col):
 		
-		if piece.team == 1 and row == 0:
+		if piece.team == self.PAWNW and row == 0:
 			piece.is_queen = True
 		
-		if piece.team == -1 and row == 7:
+		if piece.team == self.PAWNB and row == 7:
 			piece.is_queen = True
 	
 
