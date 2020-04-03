@@ -3,7 +3,6 @@ from Move import Move
 import copy
 class Board(object):
 	"""docstring for Board"""
-
 	def __init__(self):
 		super(Board, self).__init__()
 
