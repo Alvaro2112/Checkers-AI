@@ -1,5 +1,5 @@
 from Board import Board
-from Demo_Chess_Board import PlayGame
+from GUI_and_Minimax import PlayGame
 
 #Create new Board
 board = Board()
