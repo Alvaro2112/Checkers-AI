@@ -16,11 +16,11 @@ KINGB = -2
 KINGW = 2
 
 
-blank = os.path.join(CHESS_PATH, 'blank.png')
-pawnB = os.path.join(CHESS_PATH, 'npawnb.png')
-pawnW = os.path.join(CHESS_PATH, 'npawnw.png')
-kingB = os.path.join(CHESS_PATH, 'nkingb.png')
-kingW = os.path.join(CHESS_PATH, 'nkingw.png')
+blank = os.path.join(CHESS_PATH, 'Images/blank.png')
+pawnB = os.path.join(CHESS_PATH, 'Images/npawnb.png')
+pawnW = os.path.join(CHESS_PATH, 'Images/npawnw.png')
+kingB = os.path.join(CHESS_PATH, 'Images/nkingb.png')
+kingW = os.path.join(CHESS_PATH, 'Images/nkingw.png')
 
 images = {PAWNB: pawnB, PAWNW: pawnW, KINGB: kingB, KINGW: kingW, BLANK: blank}
 
@@ -117,7 +117,6 @@ def redraw_board(window, board, row = 10 ,col = 10, moves = (10,10)):
         for j in range(8):
 
             color = '#B58863' if (i+j) % 2 else '#F0D9B5'
-
             if moves.count((i,j)) != 0:
                 color = '#A58888'
 
@@ -181,7 +180,7 @@ def PlayGame(boardx):
     fromm = None
     piece_from = None
     to = None
-    Depth = 8
+    Depth = 9
     while True:
 
 
@@ -207,6 +206,7 @@ def PlayGame(boardx):
             
 
             piece_from = boardx.get_piece(piece_from.row,piece_from.col)
+            frommm = copy.deepcopy([tuple((piece_from.row,piece_from.col))])
             to = move.to
 
             for x, y in move.eaten:
@@ -215,7 +215,7 @@ def PlayGame(boardx):
                 boardx.white_pieces.remove(boardx.get_piece(x,y))
 
             boardx.move_to(piece_from,to[0],to[1])
-            redraw_board(window, boardx.board)
+            redraw_board(window, boardx.board,to[0],to[1],frommm)
             check_game_state(boardx)
             print("Human's turn")
 
