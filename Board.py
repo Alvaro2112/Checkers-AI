@@ -24,6 +24,7 @@ class Board(object):
 		self.gameover = False
 		self.draw = False
 		self.winner = 0
+		#Initial Board layout
 		self.board =[[BLANK,PAWNB]*4,
                 	[PAWNB,BLANK]*4,
                 	[BLANK,PAWNB]*4,
@@ -33,9 +34,10 @@ class Board(object):
                 	[BLANK,PAWNW]*4,
                  	[PAWNW,BLANK]*4]
 
+
 	def board_score(self):
+		"""This functions compute the score of the current board from blacks perspective"""
 		
-		self.score = 0
 		score = 0
 		no = 0
 
@@ -71,7 +73,9 @@ class Board(object):
 
 
 	def move_piece(self, piece, row, col):
+		"""this function moves a piece to a specific position"""
 		
+		#moves the piece
 		self.board[piece.row][piece.col] = self.BLANK
 		piece.row = row
 		piece.col = col
@@ -82,6 +86,7 @@ class Board(object):
 
 		pieces =  self.white_pieces if piece.team == self.PAWNB else self.black_pieces
 
+		#updates moves for other pieces and check if a piece can eat another one, if it can all other moves that do not involve eating are removed
 		eats = False
 		for i in pieces:
 			self.update_legal_moves(i)
@@ -108,6 +113,7 @@ class Board(object):
 
 
 	def add_pieces(self):
+		"""this function add initial pieces to the board"""
 
 		for row,i in enumerate(self.board):
 			for col,j in enumerate(i):
@@ -124,6 +130,7 @@ class Board(object):
 					self.black_pieces.append(piece)
 
 	def get_piece(self, row, col):
+		"""returns the piece at a specific position"""
 		
 			for i in self.white_pieces:
 				if i.row == row and i.col == col:
@@ -162,6 +169,7 @@ class Board(object):
 
 
 	def find_move(self, moves, row, col):
+		"""finds a move from a list of moves"""
 
 		for i in moves:
 			if i.to[0] == row and i.to[1] == col:
@@ -184,6 +192,7 @@ class Board(object):
 		piece.legal_moves = self.get_move(piece,piece.row, piece.col, False, Move(piece.row, piece.col))
 
 	def get_move(self, piece, row, col, has_eaten ,move):
+		"""updates moves"""
 
 		moves = []
 
@@ -254,11 +263,14 @@ class Board(object):
 
 	def add_initial_moves(self, piece):
 		
+		#disable this block if you change initial board layout
 		if self.check_pos(piece.row - piece.team, piece.col - piece.team):
 			piece.legal_moves += [Move(piece.row,piece.col,to=(piece.row - piece.team, piece.col - piece.team))]
 		if self.check_pos(piece.row - piece.team, piece.col + piece.team):
 			piece.legal_moves += [Move(piece.row,piece.col,to=(piece.row - piece.team, piece.col + piece.team))]
 		
+
+		#enable this block if you change initial board layout
 		'''
 		self.update_legal_moves(piece)
 		'''
