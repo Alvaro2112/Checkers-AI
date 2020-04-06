@@ -8,5 +8,5 @@ class Piece(object):
 		self.col = col
 		self.team = team
 		self.is_queen = False
-		self.can_eat = False
+		self.can_eat = False #If a piece has the option of eating in its legal moves, if it does, it has to
 		self.legal_moves = []

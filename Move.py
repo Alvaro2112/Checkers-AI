@@ -6,5 +6,5 @@ class Move(object):
 		super(Move, self).__init__()
 		self.fromm = (row, col) 
 		self.to = to
-		self.eaten = []
-		self.eats = False
+		self.eaten = [] #Pieces that were eaten in this move
+		self.eats = False # if this move eats pieces
