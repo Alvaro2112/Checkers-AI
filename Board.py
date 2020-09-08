@@ -65,13 +65,13 @@ class Board(object):
             for j in range(8):
 
                 if self.board_layout[i][j] == self.KINGW:
-                    score -= 5 + 8 + 2 - (4-i) if i < 4 else 5 + 8 + 2
-                    score += abs(j-4)
+                    score -= 5 + 8 + 2 - (4 - i) if i < 4 else 5 + 8 + 2
+                    score += abs(j - 4)
                     no += 1
                 elif self.board_layout[i][j] == self.KINGB:
                     no += 1
-                    score += 5 + 8 + 2 - ( i - 5) if i > 5 else 5 + 8 + 2
-                    score -= abs(j-4)
+                    score += 5 + 8 + 2 - (i - 5) if i > 5 else 5 + 8 + 2
+                    score -= abs(j - 4)
 
                 elif self.board_layout[i][j] == self.PAWNW:
                     no += 1
@@ -220,7 +220,7 @@ class Board(object):
 
             if piece.is_queen and self.is_enemmy(piece, row + piece.team,
                                                  col + (j - 1) * piece.team) and self.check_pos(
-                    row + 2 * piece.team, col + (j - 1) * 2 * piece.team) and move.eaten.count(
+                row + 2 * piece.team, col + (j - 1) * 2 * piece.team) and move.eaten.count(
                 (row + piece.team, col + (j - 1) * piece.team)) == 0:
 
                 move_copy = copy.deepcopy(move)

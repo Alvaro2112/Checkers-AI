@@ -4,8 +4,8 @@ import os
 
 import PySimpleGUI as sg
 
-import Board
-from Board import Board
+
+from Board import Board, find_move
 
 button_names = ('close', 'cookbook', 'cpu', 'github', 'pysimplegui', 'run', 'storage', 'timer')
 
@@ -279,7 +279,7 @@ def play_game(boardx, playern, depthn, bot_vs_botn, depth_white_botn, depth_blac
 
                 if (boardx.board_layout[button[0]][button[1]] == 0) and fromm is not None:
 
-                    move = Board.find_move(piece_from.legal_moves, button[0], button[1])
+                    move = find_move(piece_from.legal_moves, button[0], button[1])
 
                     if move is not None:
 

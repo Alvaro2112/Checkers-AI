@@ -50,7 +50,7 @@ depth_black_bot : The depth of the algorithm for the black pieces if bot_vs_bot 
 ![Rewards vs Episodes](Images/board.png)
 
 When starting the game you will see this Interface, you will play as black by default 
-but you can change that by ticking the "Play as White" box before starting the game.
+but you can change that by ticking the "Play as White" box before starting a new game.
 
 The other buttons are self explanatory.
 
@@ -66,9 +66,6 @@ towards the end, and I am not able to overcome this with a depth of 8. I would a
 As for the AI vs AI mode it can be fun to play with, but because the algorithm is deterministic you will always have the same outcome
 for two specific depths.
 
-## Built With
-
-* [OpenAI Gym](https://gym.openai.com/) - Environmnet used to train the Agent
 
 ## Authors
 
