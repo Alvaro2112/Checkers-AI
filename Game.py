@@ -1,5 +1,5 @@
 from Board import Board
-from GUI_and_Minimax import PlayGame
+from GUI_and_Minimax import play_game
 
 if __name__ == '__main__':
     # Create new Board
@@ -9,4 +9,4 @@ if __name__ == '__main__':
     board.add_pieces()
 
     # Start the Game
-    PlayGame(board)
+    play_game(board)

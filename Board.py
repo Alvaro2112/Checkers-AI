@@ -4,6 +4,22 @@ from Move import Move
 from Piece import Piece
 
 
+def find_move(moves, row, col):
+    """finds a move from a list of moves"""
+
+    for i in moves:
+        if i.to[0] == row and i.to[1] == col:
+            return i
+
+    return None
+
+
+def out_of_board(row, col):
+    if row >= 8 or col >= 8 or row < 0 or col < 0:
+        return True
+    return False
+
+
 class Board(object):
     """docstring for Board"""
 
@@ -49,11 +65,14 @@ class Board(object):
             for j in range(8):
 
                 if self.board_layout[i][j] == self.KINGW:
-                    score -= 5 + 8 + 2
+                    score -= 5 + 8 + 2 - (4-i) if i < 4 else 5 + 8 + 2
+                    score += abs(j-4)
                     no += 1
                 elif self.board_layout[i][j] == self.KINGB:
                     no += 1
-                    score += 5 + 8 + 2
+                    score += 5 + 8 + 2 - ( i - 5) if i > 5 else 5 + 8 + 2
+                    score -= abs(j-4)
+
                 elif self.board_layout[i][j] == self.PAWNW:
                     no += 1
                     score -= 5 + (7 - i)
@@ -164,15 +183,6 @@ class Board(object):
 
         return True
 
-    def find_move(self, moves, row, col):
-        """finds a move from a list of moves"""
-
-        for i in moves:
-            if i.to[0] == row and i.to[1] == col:
-                return i
-
-        return None
-
     def move_to(self, piece, row, col):
         if not self.check_pos(row, col):
             raise ValueError((row, col), "Wrong new position")
@@ -204,7 +214,7 @@ class Board(object):
                 piece.can_eat = True
 
                 result = self.get_move(piece, row - 2 * piece.team, col + (j - 1) * 2 * piece.team, True, move_copy)
-                if result == []:
+                if not result:
                     result = [move_copy]
                 moves += result
 
@@ -219,7 +229,7 @@ class Board(object):
                 piece.can_eat = True
 
                 result = self.get_move(piece, row + 2 * piece.team, col + (j - 1) * 2 * piece.team, True, move_copy)
-                if result == []:
+                if not result:
                     result = [move_copy]
                 moves += result
 
@@ -237,13 +247,8 @@ class Board(object):
 
         return moves
 
-    def out_of_board(self, row, col):
-        if row >= 8 or col >= 8 or row < 0 or col < 0:
-            return True
-        return False
-
     def check_pos(self, row, col):
-        if self.out_of_board(row, col):
+        if out_of_board(row, col):
             return False
 
         if self.board_layout[row][col] != 0:
@@ -252,7 +257,7 @@ class Board(object):
         return True
 
     def is_enemmy(self, piece, row, col):
-        if self.out_of_board(row, col):
+        if out_of_board(row, col):
             return False
 
         if self.board_layout[row][col] != -piece.team and self.board_layout[row][col] != - 2 * piece.team:

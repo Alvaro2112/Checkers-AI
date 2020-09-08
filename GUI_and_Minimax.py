@@ -1,11 +1,10 @@
 import copy
+import math
 import os
 
 import PySimpleGUI as sg
-import chess
-import chess.pgn
-
 from Board import Board
+import Board
 
 button_names = ('close', 'cookbook', 'cpu', 'github', 'pysimplegui', 'run', 'storage', 'timer')
 
@@ -17,7 +16,7 @@ PAWNW = 1
 KINGB = -2
 KINGW = 2
 
-blank = os.path.join(CHESS_PATH, 'Images/blank.png')
+blank = os.path.join(CHESS_PATH, 'Images/blank.png')  # You might need to change this
 pawnB = os.path.join(CHESS_PATH, 'Images/npawnb.png')
 pawnW = os.path.join(CHESS_PATH, 'Images/npawnw.png')
 kingB = os.path.join(CHESS_PATH, 'Images/nkingb.png')
@@ -26,74 +25,70 @@ kingW = os.path.join(CHESS_PATH, 'Images/nkingw.png')
 images = {PAWNB: pawnB, PAWNW: pawnW, KINGB: kingB, KINGW: kingW, BLANK: blank}
 
 
-def Minimax(board, depth, team, alpha, beta):
+def minimax(board, depth, team, alpha, beta):
     best_move = None
     best_move_piece = None
-    done = False
+    best_board_layout = None
 
     if depth == 0 or board.gameover:
-        return (None, None, copy.deepcopy(board.score))
+        return None, None, copy.deepcopy(board.score), copy.deepcopy(board.board_layout)
 
     if team == 1:
-        best_score = 1000000
+        best_score = math.inf
         pieces = board.white_pieces
     else:
-        best_score = -1000000
+        best_score = -math.inf
         pieces = board.black_pieces
 
-    for a, i in enumerate(pieces):
-        if done:
-            break
-        for b, j in enumerate(i.legal_moves):
+    for a, i in enumerate(pieces):  # loop through pieces
 
-            board_save = copy.deepcopy(board)
+        for b, j in enumerate(i.legal_moves):  # loop through legal moves of each piece
+
+            board_save = copy.deepcopy(board)  # saves current board satate
+
             if team == 1:
                 next_pos = board_save.white_pieces[a].legal_moves[b].to
 
-                for x, y in j.eaten:
+                for x, y in j.eaten:  # removes eaten pieces from board
                     board_save.board_layout[x][y] = 0
                     board_save.black_pieces.remove(board_save.get_piece(x, y))
 
-                board_save.move_to(board_save.white_pieces[a], next_pos[0], next_pos[1])
+                board_save.move_to(board_save.white_pieces[a], next_pos[0], next_pos[1])  # move the piece on board
 
             else:
+
                 next_pos = board_save.black_pieces[a].legal_moves[b].to
+
                 for x, y in j.eaten:
                     board_save.board_layout[x][y] = 0
                     board_save.white_pieces.remove(board_save.get_piece(x, y))
 
                 board_save.move_to(board_save.black_pieces[a], next_pos[0], next_pos[1])
 
-            _, _, score = Minimax(board_save, depth - 1, -team, alpha, beta)
+            _, _, score, board_layout = minimax(board_save, depth - 1, -team, alpha, beta)  # continue recursively
 
             if score > best_score and team == -1:
+                best_board_layout = copy.deepcopy(board_layout)
                 best_score = copy.deepcopy(score)
                 best_move = copy.deepcopy(j)
                 best_move_piece = copy.deepcopy(i)
 
             if score < best_score and team == 1:
+                best_board_layout = copy.deepcopy(board_layout)
                 best_score = copy.deepcopy(score)
                 best_move = copy.deepcopy(j)
                 best_move_piece = copy.deepcopy(i)
 
-            if team == 1 and beta > score:
+            if team == 1 and beta > score:  # Alpha beta prunning
                 beta = copy.deepcopy(score)
 
             if team == -1 and alpha < score:
                 alpha = copy.deepcopy(score)
 
             if beta <= alpha:
-                return (best_move_piece, best_move, best_score)
+                return best_move_piece, best_move, best_score, best_board_layout
 
-    return (best_move_piece, best_move, best_score)
-
-
-def open_pgn_file(filename):
-    pgn = open(filename)
-    first_game = chess.pgn.read_game(pgn)
-    moves = [move for move in first_game.main_line()]
-
-    return moves
+    return best_move_piece, best_move, best_score, best_board_layout
 
 
 def render_square(image, key, location):
@@ -122,7 +117,7 @@ def redraw_board(window, board, row=10, col=10, moves=(10, 10)):
 
 
 def check_game_state(board):
-    if board.winner == 0 and board.gameover == True:
+    if board.winner == 0 and board.gameover:
         print("DRAW!!")
     if board.winner == 1:
         print("White Wins!!")
@@ -130,7 +125,41 @@ def check_game_state(board):
         print("Black Wins!!")
 
 
-def PlayGame(boardx):
+def bot_play(boardx, team, depth, window):
+    global move, piece_from
+    moves = 0
+    my_pieces = boardx.black_pieces if team == -1 else boardx.white_pieces
+    enemy_pieces = boardx.black_pieces if team == 1 else boardx.white_pieces
+    for i in my_pieces:
+        for j in i.legal_moves:
+            piece_from = i
+            move = j
+            moves += 1
+
+    if moves > 1:
+        if team == 1:
+            print("White is thinking...")
+        else:
+            print("Balck is thinking...")
+
+        piece_from, move, score, board_layoutt = minimax(boardx, depth, team, -1000000, 1000000)
+        redraw_board(window, board_layoutt)
+
+    piece_from = boardx.get_piece(piece_from.row, piece_from.col)
+    frommm = copy.deepcopy([tuple((piece_from.row, piece_from.col))])
+    to = move.to
+
+    for x, y in move.eaten:
+        boardx.board_layout[x][y] = 0
+        enemy_pieces.remove(boardx.get_piece(x, y))
+
+    boardx.move_to(piece_from, to[0], to[1])
+    redraw_board(window, boardx.board_layout, to[0], to[1], frommm)
+    check_game_state(boardx)
+
+
+def play_game(boardx):
+    global button, value
     sg.ChangeLookAndFeel('GreenTan')
 
     # create initial board setup
@@ -152,41 +181,60 @@ def PlayGame(boardx):
     board_controls = [[sg.RButton('Start Game')],
                       [sg.RButton('New Game')],
                       [sg.RButton('Resign Game')],
-                      [sg.CBox('Play as White', key='_white_')]]
+                      [sg.CBox('Play as White', key='r', default=False, disabled=False)]]
 
     board_tab = [[sg.Column(board_layout)]]
 
     # the main window layout
     layout = [[sg.TabGroup([[sg.Tab('Board', board_tab)]], title_color='red'), sg.Column(board_controls)],
-              [sg.Text('Click anywhere on board for next move', font='_ 14')]]
+              [sg.Text(text='Press Start Game to start', font='_ 14', key='info')]]
 
-    window = sg.Window('Chess', default_button_element_size=(12, 1), auto_size_buttons=False, icon='kingb.ico').Layout(
+    window = sg.Window('Checkers', default_button_element_size=(12, 1), auto_size_buttons=False,
+                       icon='kingb.ico').Layout(
         layout)
 
-    # ---===--- Loop taking in user input --- #
-    whos_turn = -1
+    # DO NOT CHANGE THESE VARIABLES #
+    black = -1
+    white = 1
+    whos_turn = black
     fromm = None
     piece_from = None
-    to = None
-    Depth = 7
-    started = False
-    closed = False
-    # redraw_board(window, boardx.board_layout)
+    started = False  # Has the game started
+    closed = False  # Is window closed
+
+    # CHANGE THESE VARIABLES IN FUNCTION OF WHAT GAME MODE YOU WANT
+
+    player = black  # Who you will be, either black or white                                        ###
+    depth = 5  # The depth of the AI in Humane vs AI mode, beware of your computers limitations     ###
+    bot_vs_bot = True  # AI vs AI mode                                                             ###
+    depth_white_bot = 6  # In case of AI vs AI sets the depth of each AI                            ###
+    depth_black_bot = 4                                                                             ###
 
     while True:
-
-        if not started:
-            button, value = window.Read() if whos_turn == 1 else window.Read(timeout=0)
-
-        if button in (None, 'Start Game'):
-            started = True
 
         if closed:
             break
 
+        if not started:
+            button, value = window.Read() if (whos_turn == player and not bot_vs_bot) else window.Read(timeout=0)
+
+        if button in (None, 'Exit'):
+            break
+
+        if button in (None, 'Start Game'):
+            started = True
+            window.FindElement('info').Update(visible=False)
+            if value['r']:
+                player = white
+                whos_turn = white
+            else:
+                player = black
+                whos_turn = black
+            window.FindElement('r').Update(disabled=True)
+
         while started:
 
-            button, value = window.Read() if whos_turn == 1 else window.Read(timeout=0)
+            button, value = window.Read() if (whos_turn == player and not bot_vs_bot) else window.Read(timeout=0)
 
             if button in (None, 'Exit'):
                 closed = True
@@ -197,80 +245,54 @@ def PlayGame(boardx):
                 boardx.gameover = 1
                 check_game_state(boardx)
 
-
             elif button in (None, 'New Game'):
                 board = Board()
                 board.add_pieces()
                 boardx = board
-                whos_turn = -1
+                whos_turn = black
                 fromm = None
                 piece_from = None
                 started = False
+                window.FindElement('r').Update(disabled=False)
+                window.FindElement('info').Update(visible=True)
                 redraw_board(window, boardx.board_layout)
 
+            elif not boardx.gameover and (whos_turn != player or bot_vs_bot):
+                depth_white_bot = depth if not bot_vs_bot else depth_white_bot
+                depth = depth_black_bot if whos_turn == black and bot_vs_bot else depth_white_bot
 
-
-            elif not boardx.gameover and whos_turn == -1:
-
-                moves = 0
-                for i in boardx.black_pieces:
-                    for j in i.legal_moves:
-                        piece_from = i
-                        move = j
-                        moves += 1
-
-                if moves > 1:
-                    print("Thinking...")
-                    piece_from, move, score = Minimax(boardx, Depth, -1, -1000000, 1000000)
-                    print("FINAL:", score)
-
-                piece_from = boardx.get_piece(piece_from.row, piece_from.col)
-                frommm = copy.deepcopy([tuple((piece_from.row, piece_from.col))])
-                to = move.to
-
-                for x, y in move.eaten:
-                    boardx.board_layout[x][y] = 0
-                    boardx.white_pieces.remove(boardx.get_piece(x, y))
-
-                boardx.move_to(piece_from, to[0], to[1])
-                redraw_board(window, boardx.board_layout, to[0], to[1], frommm)
-                check_game_state(boardx)
-                print("Human's turn")
+                bot_play(boardx, whos_turn, depth, window)
 
                 fromm = None
-                move = None
-                to = None
                 piece_from = None
                 whos_turn = - whos_turn
 
-            elif type(button) == type(()) and not boardx.gameover and whos_turn == 1:
+            elif type(button) == type(()) and not boardx.gameover and whos_turn == player and not bot_vs_bot:
 
-                if (boardx.board_layout[button[0]][button[1]] == whos_turn or boardx.board_layout[button[0]][
+                if (whos_turn == boardx.board_layout[button[0]][button[1]] or boardx.board_layout[button[0]][
                     button[1]] == 2 * whos_turn):
                     fromm = button
                     piece_from = boardx.get_piece(fromm[0], fromm[1])
                     redraw_board(window, boardx.board_layout, piece_from.row, piece_from.col,
                                  list(o.to for o in piece_from.legal_moves))
 
-                if (boardx.board_layout[button[0]][button[1]] == 0) and fromm != None:
+                if (boardx.board_layout[button[0]][button[1]] == 0) and fromm is not None:
 
-                    move = boardx.find_move(piece_from.legal_moves, button[0], button[1])
+                    move = Board.find_move(piece_from.legal_moves, button[0], button[1])
 
-                    if move != None:
+                    if move is not None:
 
                         to = button
 
                         for x, y in move.eaten:
                             boardx.board_layout[x][y] = 0
-                            boardx.black_pieces.remove(boardx.get_piece(x, y))
+                            pieces = boardx.black_pieces if player == white else boardx.white_pieces
+                            pieces.remove(boardx.get_piece(x, y))
 
                         boardx.move_to(piece_from, to[0], to[1])
                         redraw_board(window, boardx.board_layout)
                         check_game_state(boardx)
-                        print("Computer's turn")
 
                         fromm = None
-                        move = None
-                        to = None
                         piece_from = None
                         whos_turn = - whos_turn
