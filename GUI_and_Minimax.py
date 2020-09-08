@@ -3,8 +3,9 @@ import math
 import os
 
 import PySimpleGUI as sg
-from Board import Board
+
 import Board
+from Board import Board
 
 button_names = ('close', 'cookbook', 'cpu', 'github', 'pysimplegui', 'run', 'storage', 'timer')
 
@@ -140,7 +141,7 @@ def bot_play(boardx, team, depth, window):
         if team == 1:
             print("White is thinking...")
         else:
-            print("Balck is thinking...")
+            print("Black is thinking...")
 
         piece_from, move, score, board_layoutt = minimax(boardx, depth, team, -1000000, 1000000)
         redraw_board(window, board_layoutt)
@@ -158,7 +159,7 @@ def bot_play(boardx, team, depth, window):
     check_game_state(boardx)
 
 
-def play_game(boardx):
+def play_game(boardx, playern, depthn, bot_vs_botn, depth_white_botn, depth_black_botn):
     global button, value
     sg.ChangeLookAndFeel('GreenTan')
 
@@ -204,11 +205,11 @@ def play_game(boardx):
 
     # CHANGE THESE VARIABLES IN FUNCTION OF WHAT GAME MODE YOU WANT
 
-    player = black  # Who you will be, either black or white                                        ###
-    depth = 5  # The depth of the AI in Humane vs AI mode, beware of your computers limitations     ###
-    bot_vs_bot = True  # AI vs AI mode                                                             ###
-    depth_white_bot = 6  # In case of AI vs AI sets the depth of each AI                            ###
-    depth_black_bot = 4                                                                             ###
+    player = playern  # Who you will be, either black or white                                           ###
+    depth = depthn  # The depth of the AI in Humane vs AI mode, beware of your computers limitations     ###
+    bot_vs_bot = bot_vs_botn  # AI vs AI mode                                                            ###
+    depth_white_bot = depth_white_botn  # In case of AI vs AI sets the depth of each AI                  ###
+    depth_black_bot = depth_black_botn  # In case of AI vs AI sets the depth of each AI                  ###
 
     while True:
 
